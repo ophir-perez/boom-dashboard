@@ -101,6 +101,7 @@ def main():
     print(f"  Pipeline MRR: ${sum(d['mrr'] for d in opn):,.2f}")
     
     outpath = os.path.join(ROOT, "data", "deals.json")
+    os.makedirs(os.path.dirname(outpath), exist_ok=True)
     with open(outpath, "w") as f:
         json.dump(deals, f)
     print(f"  Saved to {outpath}")

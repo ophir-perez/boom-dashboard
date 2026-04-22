@@ -54,6 +54,7 @@ def main():
             print(f"  {label}: {count:,}")
     
     outpath = os.path.join(ROOT, "data", "leads.json")
+    os.makedirs(os.path.dirname(outpath), exist_ok=True)
     with open(outpath, "w") as f:
         json.dump(leads, f)
     print(f"\n  Total: {total:,} contacts")

@@ -75,6 +75,7 @@ def main():
         })
     
     outpath = os.path.join(ROOT, "data", "meetings.json")
+    os.makedirs(os.path.dirname(outpath), exist_ok=True)
     with open(outpath, "w") as f:
         json.dump(meetings, f)
     print(f"  Saved to {outpath}")

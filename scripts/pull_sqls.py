@@ -52,6 +52,7 @@ def main():
             print(f"  {label}: {count:,}")
     
     outpath = os.path.join(ROOT, "data", "sqls.json")
+    os.makedirs(os.path.dirname(outpath), exist_ok=True)
     with open(outpath, "w") as f:
         json.dump(sqls, f)
     print(f"\n  Total SQLs: {total:,}")
