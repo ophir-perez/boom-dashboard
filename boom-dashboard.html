@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boom — Marketing & Sales Dashboard V7</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0B0E11;--s:#141820;--s2:#1A2030;--bd:#1E2738;--t:#E8ECF1;--m:#7A8599;--a:#3B82F6;--g:#10B981;--r:#EF4444;--am:#F59E0B;--p:#8B5CF6;--cy:#06B6D4;--or:#F97316}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t);min-height:100vh;-webkit-font-smoothing:antialiased;font-size:13px}
+.c{max-width:1600px;margin:0 auto;padding:20px 16px 50px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--bd)}
+.hdr h1{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;background:linear-gradient(135deg,#fff,#94A3B8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hdr .sub{font-size:11px;color:var(--m);margin-top:2px}
+.ctrl{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.ctrl label{font-size:10px;color:var(--m);font-weight:600}
+.ctrl input[type=date],.ctrl select,.ctrl input[type=text]{background:var(--s);border:1px solid var(--bd);color:var(--t);padding:5px 8px;border-radius:6px;font-family:'DM Sans';font-size:11px}
+.ctrl input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.6)}
+.btn{padding:5px 12px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid var(--bd);background:var(--s);color:var(--m)}
+.btn:hover{background:var(--s2);color:var(--t)}
+.btn-p{background:var(--a);color:#fff;border-color:var(--a)}
+.tabs{display:flex;gap:2px;margin-bottom:16px;background:var(--s);border-radius:8px;padding:3px;width:fit-content;flex-wrap:wrap}
+.tab{padding:7px 14px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;color:var(--m);border:none;background:transparent}
+.tab.on{background:var(--a);color:#fff}
+.kg{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:14px}
+.ki{background:var(--s);border:1px solid var(--bd);border-radius:8px;padding:11px}
+.ki .kl{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--m);margin-bottom:4px}
+.ki .kv{font-family:'Playfair Display',serif;font-size:18px;font-weight:700}
+.ki .ks{font-size:10px;color:var(--m);margin-top:2px}
+.funnel{margin-bottom:14px}
+.frow{display:flex;align-items:center;margin-bottom:4px;gap:8px}
+.frow .flbl{width:130px;font-size:10px;font-weight:700;text-align:right;flex-shrink:0}
+.frow .fbar{height:28px;border-radius:5px;display:flex;align-items:center;padding:0 10px;font-size:10px;font-weight:800;color:#fff;min-width:36px}
+.frow .fval{font-size:10px;color:var(--m);margin-left:6px}
+.tw{background:var(--s);border:1px solid var(--bd);border-radius:8px;overflow-x:auto;margin-bottom:14px}
+table{width:100%;border-collapse:collapse;min-width:1000px}
+th{text-align:left;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--m);padding:7px 8px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--bd);position:sticky;top:0;cursor:pointer;white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid var(--bd);vertical-align:top;font-size:10px}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.015)}
+a{color:var(--a);text-decoration:none}a:hover{text-decoration:underline}
+.mono{font-variant-numeric:tabular-nums}
+.tags{display:flex;flex-wrap:wrap;gap:2px;max-width:380px}
+.tag{display:inline-flex;padding:1px 5px;border-radius:3px;font-size:7px;font-weight:800;white-space:nowrap;line-height:1.5}
+.t-meta{background:rgba(236,72,153,.2);color:#F472B6}.t-ps{background:rgba(245,158,11,.2);color:#FBBF24}
+.t-web{background:rgba(6,182,212,.2);color:#22D3EE}.t-em{background:rgba(249,115,22,.2);color:#FB923C}
+.t-org{background:rgba(168,85,247,.2);color:#C084FC}.t-dir{background:rgba(59,130,246,.2);color:#60A5FA}
+.t-ref{background:rgba(16,185,129,.2);color:#34D399}.t-sdr{background:rgba(239,68,68,.18);color:#F87171}
+.t-conf{background:rgba(156,163,175,.2);color:#D1D5DB}.t-ai{background:rgba(14,165,233,.2);color:#38BDF8}
+.t-lin{background:rgba(59,130,246,.2);color:#93C5FD}.t-ft{background:rgba(100,116,139,.15);color:#94A3B8}.t-lt{background:rgba(100,116,139,.15);color:#94A3B8}
+.t-sr{background:rgba(245,158,11,.15);color:#FBBF24}.t-ls{background:rgba(236,72,153,.15);color:#F472B6}
+.pill{display:inline-block;padding:1px 6px;border-radius:4px;font-size:8px;font-weight:800}
+.p-w{background:rgba(16,185,129,.12);color:var(--g)}.p-l{background:rgba(239,68,68,.12);color:var(--r)}
+.p-n{background:rgba(245,158,11,.12);color:var(--am)}.p-d{background:rgba(59,130,246,.12);color:var(--a)}
+.p-c{background:rgba(139,92,246,.12);color:var(--p)}.p-a{background:rgba(107,114,128,.12);color:#9CA3AF}
+.spend-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:14px}
+.spend-i{background:var(--s);border:1px solid var(--bd);border-radius:8px;padding:10px}
+.spend-i label{font-size:8px;font-weight:800;text-transform:uppercase;color:var(--m);display:block;margin-bottom:4px}
+.spend-i input{width:100%;background:var(--bg);border:1px solid var(--bd);color:var(--t);padding:5px 8px;border-radius:5px;font-family:'DM Sans';font-size:12px}
+.legend{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:12px;padding:8px 12px;background:var(--s);border:1px solid var(--bd);border-radius:8px}
+.legend-t{font-size:8px;font-weight:800;text-transform:uppercase;color:var(--m);width:100%;margin-bottom:2px}
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+@media(max-width:900px){.cg{grid-template-columns:1fr}}
+.cc{background:var(--s);border:1px solid var(--bd);border-radius:8px;padding:14px}
+.cc h3{font-size:12px;font-weight:700;margin-bottom:2px}
+.cc .cs{font-size:9px;color:var(--m);margin-bottom:10px}
+.cc canvas{max-height:240px}
+.cnt{font-size:10px;color:var(--m);margin-bottom:6px}
+.footer{margin-top:24px;padding-top:12px;border-top:1px solid var(--bd);font-size:9px;color:var(--m);display:flex;justify-content:space-between}
+.modal-bg{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:1000;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+.modal-bg.show{display:flex}
+.modal{background:var(--s);border:1px solid var(--bd);border-radius:12px;width:100%;max-width:640px;max-height:80vh;display:flex;flex-direction:column}
+.modal-hdr{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--bd)}
+.modal-hdr h3{font-size:14px;font-weight:700}
+.modal-hdr .mcnt{color:var(--a);font-size:13px;font-weight:700}
+.modal-hdr .mx{cursor:pointer;width:28px;height:28px;border-radius:50%;background:var(--s2);border:1px solid var(--bd);color:var(--m);display:flex;align-items:center;justify-content:center;font-size:14px}
+.modal-hdr .mx:hover{color:var(--t);background:var(--bd)}
+.modal-body{overflow-y:auto;padding:0}
+.modal-body table{width:100%;border-collapse:collapse}
+.modal-body th{position:sticky;top:0;background:var(--s2);font-size:9px;font-weight:700;text-transform:uppercase;color:var(--m);padding:8px 12px;text-align:left;letter-spacing:.05em}
+.modal-body td{padding:8px 12px;border-bottom:1px solid var(--bd);font-size:12px}
+.modal-body tr:hover{background:var(--s2)}
+.modal-body a{color:var(--a);text-decoration:none;font-weight:600}
+.modal-body a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="c">
+<div class="hdr"><div>
+  <h1>Boom — Marketing & Sales Attribution Dashboard</h1>
+  <div class="sub">15,012 Leads · 186 Deals · 4,346 SQLs · MRR/ARR (hs_mrr) · HubSpot Links · Data as of Apr 22, 2026</div>
+</div></div>
+<div class="ctrl">
+  <label>From</label><input type="date" id="df" value="2024-01-01">
+  <label>To</label><input type="date" id="dt" value="2026-12-31">
+  <button class="btn" onclick="setP('all')">All</button>
+  <button class="btn" onclick="setP('q1')">Q1 26</button>
+  <button class="btn" onclick="setP('q4')">Q4 25</button>
+  <button class="btn" onclick="setP('ytd')">YTD</button>
+  <label>Stage</label><select id="fS"><option value="">All</option><option value="won">Won</option><option value="lost">Lost</option><option value="open">Open</option></select>
+  <label>Channel</label><select id="fC"><option value="">All</option><option value="ps">Google Ads</option><option value="ms">Meta</option><option value="em">Email</option><option value="os">Organic</option><option value="ref">Referral</option><option value="web">Webinar</option><option value="conf">Conference</option><option value="sdr">Outbound</option></select>
+  <input type="text" id="fQ" placeholder="Search..." style="width:120px">
+  <button class="btn btn-p" onclick="R()">Go</button>
+</div>
+<div class="tabs">
+  <button class="tab on" onclick="sT('mktg',this)">Marketing Pipeline</button>
+  <button class="tab" onclick="sT('sales',this)">Sales Pipeline</button>
+  <button class="tab" onclick="sT('web',this)">Webinar</button>
+  <button class="tab" onclick="sT('conf',this)">Conference</button>
+  <button class="tab" onclick="sT('journey',this)">Prospect Journey</button>
+</div>
+<div id="tab-mktg"><div class="kg" id="mK"></div><div class="funnel" id="mF"></div>
+  <div style="display:flex;gap:6px;margin-bottom:8px">
+<button class="btn" id="amFT" onclick="setAM('ft')" style="font-size:11px;padding:3px 10px;border-radius:12px;cursor:pointer">First-Touch</button>
+<button class="btn" id="amLT" onclick="setAM('lt')" style="font-size:11px;padding:3px 10px;border-radius:12px;cursor:pointer">Last-Touch</button>
+<button class="btn btn-p" id="amMT" onclick="setAM('mt')" style="font-size:11px;padding:3px 10px;border-radius:12px;cursor:pointer">Multi-Touch</button>
+</div>
+<div class="tw" id="costTbl"></div>
+  <div class="cg"><div class="cc"><h3>First-Touch</h3><div class="cs">How they found Boom</div><canvas id="mFC"></canvas></div>
+  <div class="cc"><h3>Last-Touch</h3><div class="cs">What closed the loop</div><canvas id="mLC"></canvas></div></div>
+  <div class="cnt" id="mCnt"></div><div class="tw"><table><thead id="mTH"></thead><tbody id="mTB"></tbody></table></div>
+</div>
+<div id="tab-sales" style="display:none"><div class="kg" id="sK"></div><div class="funnel" id="sF"></div>
+  <div class="cg"><div class="cc"><h3>First-Touch</h3><div class="cs">Sources</div><canvas id="sFC"></canvas></div>
+  <div class="cc"><h3>Last-Touch</h3><div class="cs">Closers</div><canvas id="sLC"></canvas></div></div>
+  <div class="cnt" id="sCnt"></div><div class="tw"><table><thead id="sTH"></thead><tbody id="sTB"></tbody></table></div>
+</div>
+<div id="tab-web" style="display:none"><div class="kg" id="wK"></div>
+  <div style="margin-bottom:8px"><select id="webSel" onchange="R()" style="background:var(--card);border:1px solid var(--bd);color:var(--t1);padding:4px 8px;border-radius:6px;font-size:12px"><option value="all">All Webinars</option></select></div>
+  <div class="funnel" id="wF"></div>
+  <div class="cnt" id="wCnt"></div><div class="tw"><table><thead id="wTH"></thead><tbody id="wTB"></tbody></table></div>
+</div>
+<div id="tab-conf" style="display:none"><div class="kg" id="cK"></div>
+  <div style="margin-bottom:8px"><select id="confSel" onchange="R()" style="background:var(--card);border:1px solid var(--bd);color:var(--t1);padding:4px 8px;border-radius:6px;font-size:12px"><option value="all">All Conferences</option></select></div>
+  <div class="funnel" id="cF"></div>
+  <div class="cnt" id="cCnt"></div><div class="tw"><table><thead id="cTH"></thead><tbody id="cTB"></tbody></table></div>
+</div>
+<div id="tab-journey" style="display:none">
+  <div class="legend"><div class="legend-t">Touchpoint Legend</div>
+    <span class="tag t-ft">FT: First Touch</span><span class="tag t-lt">LT: Last Touch</span>
+    <span class="tag t-ps">Google Ads</span><span class="tag t-meta">Meta Ads</span>
+    <span class="tag t-org">Organic</span><span class="tag t-em">Email</span>
+    <span class="tag t-web">Webinar</span><span class="tag t-ref">Referral</span>
+    <span class="tag t-ai">AI/ChatGPT</span><span class="tag t-conf">Conference</span>
+    <span class="tag t-sdr">Outbound/SDR</span><span class="tag t-sr">Self-Report</span>
+  </div>
+  <div class="kg" id="jK"></div><div class="cnt" id="jCnt"></div>
+  <div class="tw"><table><thead id="jTH"></thead><tbody id="jTB"></tbody></table></div>
+</div>
+<div class="footer"><span>HubSpot CRM · 186 Sales 2.0 Deals · Deal names link to HubSpot</span><span>Boom · The Furlough Group</span></div>
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-hdr"><h3 id="modalTitle">ALL MEETINGS</h3><div class="mcnt" id="modalCnt">0 records</div><div class="mx" onclick="closeModal()">×</div></div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+</div>
+<script>
+var D = [{"n": "Traverse Hospitality", "hid": "59396449407", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/59396449407", "sn": "Discovery", "so": 3, "sc": "disc", "w": 0, "l": 0, "mrr": 5220.0, "arr": 62640.0, "a": 84240.0, "cd": "", "cr": "2026-04-21", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Mary - Redtailridgerentals.com", "hid": "59337408641", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/59337408641", "sn": "Negotiation", "so": 4, "sc": "neg", "w": 0, "l": 0, "mrr": 0.0, "arr": 0.0, "a": 12168.0, "cd": "", "cr": "2026-04-20", "list": 0, "sr": "", "neg": 1, "ms1": "", "ms2": ""}, {"n": "Check in Portugal", "hid": "59218946052", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/59218946052", "sn": "Discovery", "so": 3, "sc": "disc", "w": 0, "l": 0, "mrr": 0.0, "arr": 0.0, "a": 0.0, "cd": "", "cr": "2026-04-16", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Mary - Redtail Ridge Rentals", "hid": "59162502763", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/59162502763", "sn": "Discovery", "so": 3, "sc": "disc", "w": 0, "l": 0, "mrr": 754.0, "arr": 9048.0, "a": 12168.0, "cd": "", "cr": "2026-04-14", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Dominika - Aguesseau capital", "hid": "59093289573", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/59093289573", "sn": "Negotiation", "so": 4, "sc": "neg", "w": 0, "l": 0, "mrr": 0.0, "arr": 0.0, "a": 69600.0, "cd": "", "cr": "2026-04-10", "list": 0, "sr": "", "neg": 1, "ms1": "", "ms2": ""}, {"n": "Georgia - GK Properties", "hid": "58294844208", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/58294844208", "sn": "Attack List", "so": 1, "sc": "atk", "w": 0, "l": 0, "mrr": 1885.0, "arr": 22620.0, "a": 22620.0, "cd": "", "cr": "2026-03-24", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Janet - Jesouth", "hid": "58244603756", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/58244603756", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 1015.0, "cd": "2026-03-31", "cr": "2026-03-23", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Nick - Osa Property Management", "hid": "58075751833", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/58075751833", "sn": "Attack List", "so": 1, "sc": "atk", "w": 0, "l": 0, "mrr": 2175.0, "arr": 26100.0, "a": 26100.0, "cd": "", "cr": "2026-03-17", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Osa Property Management - 75 Listings", "hid": "58058245747", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/58058245747", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 26100.0, "cd": "2026-03-18", "cr": "2026-03-17", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Shaul - Safednofhesh", "hid": "57998792022", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/57998792022", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 0.0, "cd": "2026-03-17", "cr": "2026-03-14", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Janine - 5 Star Bali Villa", "hid": "57994173813", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/57994173813", "sn": "Contract Sent", "so": 5, "sc": "cs", "w": 0, "l": 0, "mrr": 0.0, "arr": 0.0, "a": 2200.0, "cd": "2026-04-20", "cr": "2026-03-14", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Bert - KeysCations", "hid": "58001269512", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/58001269512", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 870.0, "arr": 10440.0, "a": 10440.0, "cd": "2026-04-07", "cr": "2026-03-14", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Richard - Feliz stays", "hid": "57985246372", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/57985246372", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 1770.0, "arr": 21240.0, "a": 21240.0, "cd": "2026-04-06", "cr": "2026-03-13", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Rodrigo - Hopstays", "hid": "57983386448", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/57983386448", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 1450.0, "arr": 17400.0, "a": 17400.0, "cd": "2026-03-31", "cr": "2026-03-13", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Dafni / ARAPOGLOU - TravelPro Services", "hid": "57528974981", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/57528974981", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 0.0, "cd": "2026-03-11", "cr": "2026-03-04", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Omyros / Margarita - The Homis", "hid": "57495536785", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/57495536785", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 0.0, "arr": 0.0, "a": 55680.0, "cd": "2026-03-23", "cr": "2026-03-03", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Natalie - Oban Holiday Lets", "hid": "58479623076", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/58479623076", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 1160.0, "arr": 13920.0, "a": 13920.0, "cd": "2026-03-31", "cr": "2026-03-03", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "KONSTANTINOS - Atmabnb", "hid": "57317744815", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/57317744815", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 0.0, "arr": 0.0, "a": 986.0, "cd": "2026-03-09", "cr": "2026-03-02", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Julia - Staymo", "hid": "57017139375", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/57017139375", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 11600.0, "arr": 139200.0, "a": 139200.0, "cd": "2026-04-06", "cr": "2026-02-25", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "FRAN - MISTERHOST APARTMENTS", "hid": "56642930769", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/56642930769", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 16704.0, "cd": "2026-03-17", "cr": "2026-02-19", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Shan - Urban Nest", "hid": "55832380219", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/55832380219", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 11700.0, "cd": "2026-02-22", "cr": "2026-02-10", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Heidi - Rockmont Investments", "hid": "55867396025", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/55867396025", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 32760.0, "cd": "2026-02-22", "cr": "2026-02-10", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Tim - Corzly", "hid": "55873739118", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/55873739118", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 6525.0, "arr": 78300.0, "a": 78300.0, "cd": "2026-03-31", "cr": "2026-02-10", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Caleb - StayLakeNorman", "hid": "55840679685", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/55840679685", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 21528.0, "cd": "2026-03-11", "cr": "2026-02-10", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Leanne DH cottages", "hid": "55481963958", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/55481963958", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 2900.0, "arr": 34800.0, "a": 34800.0, "cd": "2026-04-06", "cr": "2026-02-05", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Bernice - The Heim", "hid": "55576188206", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/55576188206", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 14268.0, "cd": "2026-02-22", "cr": "2026-02-05", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Robert - Suite Stays Atlanta", "hid": "55379931001", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/55379931001", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 27144.0, "cd": "2026-02-22", "cr": "2026-02-02", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Arthur - Eden Villas Miami", "hid": "54829236851", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/54829236851", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 783.0, "arr": 9396.0, "a": 10396.0, "cd": "2026-01-29", "cr": "2026-01-28", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Two Five Five Architects-Theo Kruger-1", "hid": "46668817314", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/46668817314", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 0.0, "arr": 0.0, "a": 1730.0, "cd": "2026-02-06", "cr": "2026-01-28", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Sachin - Real Estate shodh", "hid": "54261614187", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/54261614187", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 7500.0, "arr": 90000.0, "a": 90000.0, "cd": "2026-02-12", "cr": "2026-01-20", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Oswaldo - Riviera Rentals", "hid": "54106841781", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/54106841781", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 1189.0, "arr": 14268.0, "a": 14268.0, "cd": "2026-01-21", "cr": "2026-01-18", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Raj - My Property Host", "hid": "53748129708", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/53748129708", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 180000.0, "cd": "2026-03-09", "cr": "2026-01-13", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Rafaela - Tatiana - The Best Stay - PT", "hid": "53675728902", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/53675728902", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 928.0, "arr": 11136.0, "a": 11136.0, "cd": "2026-03-09", "cr": "2026-01-12", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Lance - Minnestay", "hid": "53663498160", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/53663498160", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 51480.0, "cd": "2026-01-12", "cr": "2026-01-12", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Harry - Air Peace of Mind", "hid": "53676467780", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/53676467780", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 20880.0, "cd": "2026-01-12", "cr": "2026-01-12", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Guroom Holiday Homes LLC", "hid": "53404767506", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/53404767506", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 1160.0, "arr": 13920.0, "a": 13920.0, "cd": "2026-01-14", "cr": "2026-01-08", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Amjad - Darent", "hid": "53426370306", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/53426370306", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 25056.0, "cd": "2026-01-08", "cr": "2026-01-08", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Patricio - RSB Living", "hid": "53227946915", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/53227946915", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 1950.0, "arr": 23400.0, "a": 24400.0, "cd": "2026-03-31", "cr": "2026-01-05", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Vid - Vid Sokli\u010d", "hid": "52866756521", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/52866756521", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 13920.0, "cd": "2025-12-31", "cr": "2025-12-31", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Khalil - Lemon stays", "hid": "52851848255", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/52851848255", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 2200.0, "cd": "2026-01-21", "cr": "2025-12-29", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Robert - city living malta", "hid": "52842795279", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/52842795279", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 34800.0, "cd": "2026-01-13", "cr": "2025-12-29", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Tatiana - The Best Stay - PT", "hid": "52863047858", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/52863047858", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 17400.0, "cd": "2026-01-12", "cr": "2025-12-29", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Neuza - HDproperties", "hid": "52816524634", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/52816524634", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 69600.0, "cd": "2026-01-13", "cr": "2025-12-29", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Suzy, Cam, SJ - Easy Let Angels Ltd", "hid": "52814634777", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/52814634777", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 52200.0, "cd": "2026-01-13", "cr": "2025-12-29", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Pini - Furnished club", "hid": "52813836589", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/52813836589", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 800.0, "arr": 9600.0, "a": 9600.0, "cd": "2026-01-22", "cr": "2025-12-29", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Dominik - Canela Homes", "hid": "52813898859", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/52813898859", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 0.0, "cd": "2026-01-21", "cr": "2025-12-29", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Jess, Freddie - Sleeps12", "hid": "52815727636", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/52815727636", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 24360.0, "cd": "2026-01-13", "cr": "2025-12-29", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Eduardo - PVRPV", "hid": "52814957907", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/52814957907", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 104400.0, "cd": "2026-01-26", "cr": "2025-12-29", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Agustin - C&P Real Homes Ltd", "hid": "52814286925", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/52814286925", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 26100.0, "cd": "2026-01-13", "cr": "2025-12-29", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "HIVE - Jan/Rohit", "hid": "52519819344", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/52519819344", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 52200.0, "cd": "2026-01-28", "cr": "2025-12-25", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Staycating.com-Vernon-Corum", "hid": "53696619099", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/53696619099", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 936.0, "arr": 11232.0, "a": 11232.0, "cd": "2026-01-14", "cr": "2025-12-22", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Fresh Escapes - James", "hid": "52002417776", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/52002417776", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 69600.0, "cd": "2026-03-12", "cr": "2025-12-18", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Seven lions holdings", "hid": "52036568595", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/52036568595", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 425.0, "arr": 5100.0, "a": 5280.0, "cd": "2025-12-19", "cr": "2025-12-18", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Lucas - Westside Capital Group", "hid": "51934138020", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/51934138020", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 10440.0, "cd": "2026-03-09", "cr": "2025-12-16", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "T.L.B NADLAN S.A de C.V", "hid": "50547100047", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/50547100047", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 580.0, "arr": 6960.0, "a": 6960.0, "cd": "2025-11-27", "cr": "2025-11-27", "list": 20, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Host Connect - Property Management Ltd", "hid": "50556365729", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/50556365729", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 1015.0, "arr": 12180.0, "a": 12180.0, "cd": "2025-11-27", "cr": "2025-11-27", "list": 35, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Together Travel Co-Laura Dubois-350", "hid": "50464990842", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/50464990842", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 0.0, "cd": "2025-12-18", "cr": "2025-11-27", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Signature Serviced Apartments Ltd - New Deal", "hid": "50513212797", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/50513212797", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 2030.0, "arr": 24360.0, "a": 24360.0, "cd": "2025-11-27", "cr": "2025-11-26", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Landlord Care", "hid": "50455036245", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/50455036245", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 1204.0, "arr": 14448.0, "a": 14448.0, "cd": "2025-11-27", "cr": "2025-11-26", "list": 43, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Laik LTD", "hid": "50104112674", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/50104112674", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 1537.0, "arr": 18444.0, "a": 18444.0, "cd": "2025-11-26", "cr": "2025-11-24", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "HDproperties-Neuza Calvinho-200", "hid": "49711969165", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/49711969165", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 62640.0, "cd": "2025-11-27", "cr": "2025-11-21", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "-Barry Burton-", "hid": "49708067109", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/49708067109", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 0.0, "cd": "2025-11-27", "cr": "2025-11-21", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "-Kevin Shaw-", "hid": "49728310584", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/49728310584", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 52200.0, "cd": "2026-03-09", "cr": "2025-11-21", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Verano Property Management - Verano Property Management", "hid": "49539632535", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/49539632535", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 1175.0, "arr": 14100.0, "a": 14100.0, "cd": "2025-11-27", "cr": "2025-11-19", "list": 40, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Amber Hospitality-Zaid Ahmed-180", "hid": "49468030589", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/49468030589", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 3240.0, "arr": 38880.0, "a": 38880.0, "cd": "2026-04-01", "cr": "2025-11-18", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "-Debora Coelho-", "hid": "48830269808", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/48830269808", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 19140.0, "cd": "2026-01-13", "cr": "2025-11-11", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "FIDALSHOLIDAYS-Andres Gomis-120", "hid": "48870310253", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/48870310253", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 3045.0, "arr": 36540.0, "a": 36540.0, "cd": "2025-11-20", "cr": "2025-11-11", "list": 105, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Peak Management-Dean Venter-20", "hid": "48428151381", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/48428151381", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 13920.0, "cd": "2026-01-13", "cr": "2025-11-06", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Ambiente Serviced Apartments-Ivana-50", "hid": "48436802874", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/48436802874", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 0.0, "cd": "2025-11-20", "cr": "2025-11-06", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Best Hosting Unipessoal Lda", "hid": "48293964901", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/48293964901", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 1885.0, "arr": 22620.0, "a": 22620.0, "cd": "2025-11-28", "cr": "2025-11-05", "list": 65, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Furneaux-Lee F-85", "hid": "48268168231", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/48268168231", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 0.0, "cd": "2025-11-18", "cr": "2025-11-05", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Biz Flats", "hid": "48282576681", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/48282576681", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 522.0, "arr": 6264.0, "a": 6264.0, "cd": "2025-11-28", "cr": "2025-11-05", "list": 18, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "smith&adams properties", "hid": "47739254617", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/47739254617", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 5568.0, "arr": 66816.0, "a": 66816.0, "cd": "2025-10-31", "cr": "2025-10-31", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Diamonds Alley", "hid": "47189736356", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/47189736356", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 945.0, "arr": 11340.0, "a": 12490.0, "cd": "2025-10-28", "cr": "2025-10-26", "list": 35, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Jerusalem Stone Apartments", "hid": "46698876024", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/46698876024", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 486.0, "arr": 5832.0, "a": 6982.0, "cd": "2025-10-28", "cr": "2025-10-22", "list": 18, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Sidhu Properties-Rashpal Sidhu-200", "hid": "46696711687", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/46696711687", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 69600.0, "cd": "2026-01-13", "cr": "2025-10-22", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Oyster Holiday Cottages william", "hid": "46520090003", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/46520090003", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 0.0, "cd": "2025-11-26", "cr": "2025-10-20", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "KEY VISION LTD", "hid": "46412631650", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/46412631650", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 1392.0, "arr": 16704.0, "a": 17704.0, "cd": "2025-10-29", "cr": "2025-10-20", "list": 48, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "CoHost (Pty) Ltd", "hid": "46022378772", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/46022378772", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 1305.0, "arr": 15660.0, "a": 16460.0, "cd": "2025-10-30", "cr": "2025-10-15", "list": 23, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "myBeach", "hid": "45968436008", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/45968436008", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 35.0, "arr": 420.0, "a": 31920.0, "cd": "2025-10-14", "cr": "2025-10-14", "list": 76, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Doug Schrof", "hid": "45416768267", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/45416768267", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 30.0, "arr": 360.0, "a": 13492.0, "cd": "2025-10-20", "cr": "2025-10-07", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Dillon Frazier-24", "hid": "44045215873", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/44045215873", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 10440.0, "cd": "2025-10-23", "cr": "2025-09-21", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "TLVRENTALS-Alex pik-32", "hid": "44007808585", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/44007808585", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 0.0, "cd": "2025-11-04", "cr": "2025-09-21", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Eason Stays LTD", "hid": "44007807011", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/44007807011", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 29.0, "arr": 348.0, "a": 1598.0, "cd": "2025-10-02", "cr": "2025-09-21", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "White Mountain Vacations", "hid": "43874332705", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/43874332705", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 720.09, "arr": 8641.08, "a": 9641.08, "cd": "2025-09-28", "cr": "2025-09-18", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Decasa Rental LLc", "hid": "43423122000", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/43423122000", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 920.11, "arr": 11041.32, "a": 13541.32, "cd": "2025-09-28", "cr": "2025-09-08", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Dwell Property Management (Pty) Ltd", "hid": "43423121848", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/43423121848", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 0.0, "arr": 0.0, "a": 32400.0, "cd": "2025-09-16", "cr": "2025-09-08", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Gal Day", "hid": "43288832069", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/43288832069", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 59.0, "arr": 708.0, "a": 624.0, "cd": "2025-09-04", "cr": "2025-09-04", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "K.SH.R SHORESH YOZMOT LTD", "hid": "43347241859", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/43347241859", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 846.0, "arr": 10152.0, "a": 9048.0, "cd": "2025-09-04", "cr": "2025-09-04", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "\u05dc.\u05e0.\u05d9 \u05e0\u05db\u05e1\u05d9\u05dd \u05d5\u05d4\u05e9\u05e7\u05e2\u05d5\u05ea", "hid": "43270388497", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/43270388497", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 441.0, "arr": 5292.0, "a": 4680.0, "cd": "2025-09-04", "cr": "2025-09-02", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Beyond Property Management-Danyel-Brooks", "hid": "42665142019", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/42665142019", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 19400.0, "cd": "2025-10-08", "cr": "2025-08-21", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Inverus-Nicholas-Londono", "hid": "42670346032", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/42670346032", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 9676.0, "cd": "2025-10-08", "cr": "2025-08-21", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "SwissHut Property Management AG-Nardi-Davidsohn", "hid": "42598903144", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/42598903144", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 15960.0, "cd": "2025-10-08", "cr": "2025-08-21", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Atlantic Vacation Homes-Jonathan-Fonvielle", "hid": "42608735776", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/42608735776", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 28100.0, "cd": "2025-10-21", "cr": "2025-08-20", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "The Corporate Apartment Group - Nick", "hid": "42556751910", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/42556751910", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 5370.0, "arr": 64440.0, "a": 66940.0, "cd": "2025-11-20", "cr": "2025-08-20", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Domidai-Francisco-Garc\u00eda", "hid": "42438387803", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/42438387803", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 43920.0, "cd": "2025-08-25", "cr": "2025-08-19", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Erez Shaked", "hid": "42368488720", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/42368488720", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 290.0, "arr": 3480.0, "a": 3480.0, "cd": "2025-09-04", "cr": "2025-08-18", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Modern Stay LLC-Islam-Elgarhi", "hid": "42228385081", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/42228385081", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 15960.0, "cd": "2025-08-25", "cr": "2025-08-15", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Conscious Design Bali-Anders-Olsson", "hid": "42111549450", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/42111549450", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 348.0, "arr": 4176.0, "a": 4176.0, "cd": "2025-09-07", "cr": "2025-08-15", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Sweetgrass Properties - John - Woelfel - 133", "hid": "42107648919", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/42107648919", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 48268.0, "cd": "2025-10-08", "cr": "2025-08-14", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Mullet Bay LLC-Benoit-Caire", "hid": "42042953601", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/42042953601", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 38000.0, "cd": "2025-11-20", "cr": "2025-08-14", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Renjoy-Luke-Rzepiennik", "hid": "41853733250", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/41853733250", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 68120.0, "cd": "2025-09-18", "cr": "2025-08-12", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Wemanage", "hid": "41636726439", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/41636726439", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 1600.0, "arr": 19200.0, "a": 20880.0, "cd": "2025-09-04", "cr": "2025-08-10", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Beachfront apartments in shakas rock - Boom Setup", "hid": "41635274019", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/41635274019", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 57520.0, "cd": "2025-10-21", "cr": "2025-08-10", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "The Wallington Group-Dustin-Wallington", "hid": "41636687523", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/41636687523", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 19400.0, "cd": "2025-10-08", "cr": "2025-08-10", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Hm vacation rentals-Hersson-Portillo", "hid": "41229571109", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/41229571109", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 10700.0, "cd": "", "cr": "2025-08-02", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Ballito Accommodation-Christine-Grobler", "hid": "41137475756", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/41137475756", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 4525.0, "arr": 54300.0, "a": 54000.0, "cd": "2025-09-28", "cr": "2025-07-31", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Levalux-Bibiana-Smith", "hid": "41041972047", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/41041972047", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 406.0, "arr": 4872.0, "a": 4872.0, "cd": "2025-08-27", "cr": "2025-07-30", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Cozy Cape Town - Virginie", "hid": "41559853862", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/41559853862", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 12116.0, "cd": "2025-10-08", "cr": "2025-07-29", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "WEG Realty-Pavel-Shapovalov", "hid": "41433510819", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/41433510819", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 29.0, "arr": 348.0, "a": 6960.0, "cd": "2025-08-19", "cr": "2025-07-29", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Collective Development-Joanne-Kim", "hid": "40628825913", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/40628825913", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 36800.0, "cd": "2025-10-08", "cr": "2025-07-22", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Arrowhead Group, Inc-Alan-Zhong", "hid": "40613409387", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/40613409387", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 36800.0, "cd": "2025-10-08", "cr": "2025-07-21", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "CRIBS-Jeremy-Courtney", "hid": "40604807477", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/40604807477", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 33320.0, "cd": "2025-10-08", "cr": "2025-07-21", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "SID Concierge- Oleg", "hid": "40546050329", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/40546050329", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 1237.0, "cd": "2025-11-21", "cr": "2025-07-21", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Jaco Jordaan - CTHA Cape Town Holiday Apartments", "hid": "40394285728", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/40394285728", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 2001.0, "arr": 24012.0, "a": 28100.0, "cd": "2025-08-11", "cr": "2025-07-17", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Mayfair Stays-Dominic-Black", "hid": "40268696880", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/40268696880", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 25.0, "arr": 300.0, "a": 22880.0, "cd": "2025-08-13", "cr": "2025-07-15", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Beach Apartment Ltd", "hid": "39850263894", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/39850263894", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 800.0, "arr": 9600.0, "a": 7920.0, "cd": "2025-11-11", "cr": "2025-07-08", "list": 30, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Stay in Costa Rica in Los Suenos Resort - Gerry - Getty - 25", "hid": "39257404554", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/39257404554", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 10700.0, "cd": "2025-10-08", "cr": "2025-06-24", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "TommApart-Tom-Las", "hid": "38834819246", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/38834819246", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 25.0, "arr": 300.0, "a": 12440.0, "cd": "", "cr": "2025-06-13", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "BA MANAGEMENT KPG-barak-atias", "hid": "38812721550", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/38812721550", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 29.0, "arr": 348.0, "a": 7220.0, "cd": "2025-07-02", "cr": "2025-06-12", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "S.A.A HOTELS LTD-Itamar-Dychtwald", "hid": "38810584191", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/38810584191", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 1074.0, "arr": 12888.0, "a": 11088.0, "cd": "2025-08-19", "cr": "2025-06-12", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Kozy Getaways-Stacey-St. John", "hid": "38689968045", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/38689968045", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 15960.0, "cd": "2025-10-08", "cr": "2025-06-09", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Almora", "hid": "38809899367", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/38809899367", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 295.0, "arr": 3540.0, "a": 3740.0, "cd": "2025-10-21", "cr": "2025-06-09", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Safiri vacation rental services-Melissa-Carrin", "hid": "39222005886", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/39222005886", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 15960.0, "cd": "2025-08-19", "cr": "2025-06-03", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Sid Was Here-Julie-Gates", "hid": "38302590864", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/38302590864", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 13000.0, "cd": "2025-08-19", "cr": "2025-06-02", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Fragola Apartments - Pawel - Jaworek - 150", "hid": "38034087832", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/38034087832", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 2295.0, "arr": 27540.0, "a": 524200.0, "cd": "2025-06-18", "cr": "2025-05-27", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Proper Living  - Benjamin - Schaffer - 450", "hid": "38001778215", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/38001778215", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 57.5, "arr": 690.0, "a": 31000.0, "cd": "", "cr": "2025-05-27", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Cassavillas - Slavica - Mustapic - 50", "hid": "38117631336", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/38117631336", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 17000.0, "cd": "2025-10-08", "cr": "2025-05-26", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Tempstay - Russel - Pain - 125", "hid": "37630813966", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/37630813966", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 43500.0, "cd": "2025-10-08", "cr": "2025-05-22", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Heinrich wagner", "hid": "37021836444", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/37021836444", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 28000.0, "cd": "2025-08-25", "cr": "2025-05-11", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Curated Property - Thomas - Dolman -", "hid": "37000911790", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/37000911790", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 29800.0, "cd": "2025-10-08", "cr": "2025-05-10", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Nextribe", "hid": "36962012423", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/36962012423", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 45.0, "arr": 540.0, "a": 8900.0, "cd": "2025-11-05", "cr": "2025-05-08", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Markus", "hid": "36878001535", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/36878001535", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 35.34, "arr": 424.08, "a": 107040.0, "cd": "2025-05-12", "cr": "2025-05-07", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Happiness", "hid": "36808023567", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/36808023567", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 1980.0, "arr": 23760.0, "a": 26260.0, "cd": "2025-11-04", "cr": "2025-05-06", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Propertyfinderz, Co - Owen - Johnson -", "hid": "42089839751", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/42089839751", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 468.0, "arr": 5616.0, "a": 5616.0, "cd": "2025-11-18", "cr": "2025-05-02", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Pacific Building Solutions - Rob - Semaan -", "hid": "36596708358", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/36596708358", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 17000.0, "cd": "", "cr": "2025-05-01", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Second Home Hosting", "hid": "36609572180", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/36609572180", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 2451.0, "arr": 29412.0, "a": 302672.0, "cd": "2025-01-01", "cr": "2025-04-30", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "The Cubes Apartments - Dima - Thobejane -", "hid": "36532415913", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/36532415913", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 14000.0, "cd": "", "cr": "2025-04-30", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Fourteen at mullet - Benoit - Caire -", "hid": "36369827330", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/36369827330", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 35000.0, "cd": "", "cr": "2025-04-27", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "The Brighthouse", "hid": "36195907730", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/36195907730", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 44.48, "arr": 533.76, "a": 10000.0, "cd": "", "cr": "2025-04-24", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Cohost Partners - Matthew - Lowe -", "hid": "36133316972", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/36133316972", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 65000.0, "cd": "", "cr": "2025-04-23", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "GetawayClub LLC", "hid": "36037449392", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/36037449392", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 825.0, "arr": 9900.0, "a": 54540.0, "cd": "2025-06-11", "cr": "2025-04-21", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Swissvalley", "hid": "35744280705", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/35744280705", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 1000.0, "arr": 12000.0, "a": 7100.0, "cd": "", "cr": "2025-04-14", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "- heiko - Roth - 35", "hid": "35633974644", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/35633974644", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 0.0, "cd": "", "cr": "2025-04-11", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "- Thomas - Dabarno - 28", "hid": "35627104169", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/35627104169", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 0.0, "cd": "", "cr": "2025-04-09", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "FEELHOME D.M", "hid": "35129262230", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/35129262230", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 1392.0, "arr": 16704.0, "a": 17704.0, "cd": "2025-10-28", "cr": "2025-03-27", "list": 24, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "R2M Assets ltd", "hid": "35060510537", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/35060510537", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 377.0, "arr": 4524.0, "a": 4524.0, "cd": "2025-10-21", "cr": "2025-03-25", "list": 13, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "TRM LUXURY PROPERTIES S DE RL - Marc - Ramon Hernandez -", "hid": "34888056138", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/34888056138", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 21000.0, "cd": "2025-04-30", "cr": "2025-03-20", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Short & Suite LLC", "hid": "34821727385", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/34821727385", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 575.0, "arr": 6900.0, "a": 85872.0, "cd": "2025-06-23", "cr": "2025-03-19", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Roomservice Marbella SL", "hid": "34815529239", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/34815529239", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 3750.0, "arr": 45000.0, "a": 45000.0, "cd": "2025-04-07", "cr": "2025-03-19", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "habitat apartments - David - Riba", "hid": "34610219683", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/34610219683", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 52000.0, "cd": "2025-10-08", "cr": "2025-03-13", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "LaMangaBooking  - Espen - Heimdal -", "hid": "34603792687", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/34603792687", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 22.5, "arr": 270.0, "a": 35000.0, "cd": "2025-10-26", "cr": "2025-03-13", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Simple Life Hospitality  - Michael Fridman", "hid": "34627679267", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/34627679267", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 4750.0, "arr": 57000.0, "a": 456040.0, "cd": "2025-05-04", "cr": "2025-03-13", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Nancy's Vacation Rentals", "hid": "34533467712", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/34533467712", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 2700.0, "arr": 32400.0, "a": 246640.0, "cd": "2025-05-15", "cr": "2025-03-11", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Air TLV (Localz)", "hid": "34130703255", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/34130703255", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 0.0, "arr": 0.0, "a": 2581.0, "cd": "2026-03-30", "cr": "2025-03-02", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Properly Inc - Frances - Alice -", "hid": "34026521090", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/34026521090", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 17000.0, "cd": "2025-03-31", "cr": "2025-02-27", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Xiza ltd - Misha - Cunningham -", "hid": "33997615190", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/33997615190", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 1600.0, "arr": 19200.0, "a": 491120.0, "cd": "2025-03-10", "cr": "2025-02-26", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Arhouse London Ltd", "hid": "33911770255", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/33911770255", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 1000.0, "arr": 12000.0, "a": 30192.0, "cd": "2025-03-10", "cr": "2025-02-25", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "The Carmelo", "hid": "33758455129", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/33758455129", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 45.0, "arr": 540.0, "a": 54540.0, "cd": "2025-07-08", "cr": "2025-02-20", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "- Juan Miguel - Rivera - 110", "hid": "32849825578", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/32849825578", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 38000.0, "cd": "2025-09-28", "cr": "2025-02-01", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Rest Easy", "hid": "32613147982", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/32613147982", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 150.0, "arr": 1800.0, "a": 260312.0, "cd": "2025-03-11", "cr": "2025-01-28", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Second Home Hosting", "hid": "32650729078", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/32650729078", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 0.0, "arr": 0.0, "a": 43200.0, "cd": "2025-01-01", "cr": "2025-01-28", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "- Nathan - Nienhuis -", "hid": "32323474257", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/32323474257", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 8900.0, "cd": "2025-03-31", "cr": "2025-01-22", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "GALL Trade s.r.o.", "hid": "32301816216", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/32301816216", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 2475.0, "arr": 29700.0, "a": 194540.0, "cd": "2025-02-06", "cr": "2025-01-22", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "YY Apartments Ltd", "hid": "32043960652", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/32043960652", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 800.0, "arr": 9600.0, "a": 92872.0, "cd": "2025-02-12", "cr": "2025-01-15", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "TROPICLOOK HOME CO LTD", "hid": "32074743074", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/32074743074", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 2160.0, "arr": 25920.0, "a": 281760.0, "cd": "2025-01-30", "cr": "2025-01-15", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Beach Nest", "hid": "31688198448", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/31688198448", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 17000.0, "cd": "2025-01-31", "cr": "2025-01-08", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Holiday Rental Specialists", "hid": "29891584172", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/29891584172", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 11375.0, "arr": 136500.0, "a": 90090.0, "cd": "2025-08-19", "cr": "2024-12-05", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "The Luxe Nomad \u2014 Full PMS", "hid": "29244853135", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/29244853135", "sn": "Discovery", "so": 3, "sc": "disc", "w": 0, "l": 0, "mrr": 2639.0, "arr": 31668.0, "a": 2639.0, "cd": "2026-06-30", "cr": "2024-11-18", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Property Rental Club", "hid": "29123685202", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/29123685202", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 3312.5, "arr": 39750.0, "a": 43680.0, "cd": "2025-09-07", "cr": "2024-11-14", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "M2 Malaga-Vegard-Vang", "hid": "38809899423", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/38809899423", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 29.0, "arr": 348.0, "a": 85872.0, "cd": "2025-06-18", "cr": "2024-11-14", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "White City Limassol", "hid": "21566125322", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/21566125322", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 801.0, "arr": 9612.0, "a": 6960.0, "cd": "2025-09-07", "cr": "2024-08-19", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Sun Spalato", "hid": "29247086974", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/29247086974", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 38000.0, "cd": "2025-10-08", "cr": "2024-08-19", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Juniper Holiday & Home - Valerie", "hid": "21639089525", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/21639089525", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 4005.0, "arr": 48060.0, "a": 42000.0, "cd": "2025-10-08", "cr": "2024-08-12", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Adiel Shlinger", "hid": "19869965172", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/19869965172", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 40.0, "arr": 480.0, "a": 281760.0, "cd": "2024-10-28", "cr": "2024-06-05", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Luxuria Property Management", "hid": "19626140080", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/19626140080", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 232.0, "arr": 2784.0, "a": 3784.0, "cd": "2025-11-19", "cr": "2024-05-26", "list": 8, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "anglesey-hl.co.uk - New Deal", "hid": "19489433758", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/19489433758", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 3395.0, "arr": 40740.0, "a": 40000.0, "cd": "2026-01-28", "cr": "2024-05-15", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Euphoric Leisure (Pty) Ltd", "hid": "18161574705", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/18161574705", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 2241.0, "arr": 26892.0, "a": 291492.0, "cd": "2025-02-12", "cr": "2024-03-22", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Cape Villa Collection - Brendan - Jenman - 20", "hid": "17995735710", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/17995735710", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 69600.0, "cd": "2025-09-18", "cr": "2024-03-12", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Firefly Villas - Corne - Smith - 60", "hid": "17995699628", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/17995699628", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 725.0, "arr": 8700.0, "a": 8700.0, "cd": "2025-10-29", "cr": "2024-03-12", "list": 60, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Easybnb - Lu", "hid": "17995637827", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/17995637827", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 29400.0, "cd": "2026-03-09", "cr": "2024-03-12", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "SIASOL MARBELLA S.L.", "hid": "17732973081", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/17732973081", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 493.0, "arr": 5916.0, "a": 5916.0, "cd": "2025-09-18", "cr": "2024-02-26", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "BIBO SUITES - Jose - CERVILLERA - 150", "hid": "17650775051", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/17650775051", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 4500.0, "arr": 54000.0, "a": 52000.0, "cd": "2025-04-30", "cr": "2024-02-21", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Ladi - Hatyina,Halldis - 600", "hid": "16999813663", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/16999813663", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 12000.0, "arr": 144000.0, "a": 144000.0, "cd": "2026-01-26", "cr": "2024-01-17", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Duty - Liraz Hodeda -", "hid": "16882226752", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/16882226752", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 675.0, "arr": 8100.0, "a": 8100.0, "cd": "2025-11-25", "cr": "2024-01-10", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Lucas Holiday Rentals", "hid": "16100744021", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/16100744021", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 1508.0, "arr": 18096.0, "a": 18096.0, "cd": "2025-10-31", "cr": "2023-11-17", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "TEL AVIV 2 GO LTD", "hid": "16030016893", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/16030016893", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 25.0, "arr": 300.0, "a": 577740.0, "cd": "2025-07-02", "cr": "2023-11-12", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Home Sweet Hudson - New Deal", "hid": "15942691869", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/15942691869", "sn": "Closed Lost", "so": 7, "sc": "lost", "w": 0, "l": 1, "mrr": 0.0, "arr": 0.0, "a": 19200.0, "cd": "2026-03-16", "cr": "2023-11-06", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "Sea N Rent", "hid": "16968559713", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/16968559713", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 7875.0, "arr": 94500.0, "a": 94500.0, "cd": "2024-12-30", "cr": "2023-11-06", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}, {"n": "2ndhomes.fi - New Deal", "hid": "13488559989", "url": "https://app.hubspot.com/contacts/24030694/record/0-3/13488559989", "sn": "Closed Won", "so": 6, "sc": "won", "w": 1, "l": 0, "mrr": 1672.28, "arr": 20067.36, "a": 23280.0, "cd": "2025-08-20", "cr": "2023-05-29", "list": 0, "sr": "", "neg": 0, "ms1": "", "ms2": ""}];
+var L = {"total_since_jul_2025": 3475, "sources_since_jul_2025": {"OFFLINE": 2956, "DIRECT_TRAFFIC": 226, "PAID_SOCIAL": 98, "REFERRALS": 75, "ORGANIC_SEARCH": 72, "EMAIL_MARKETING": 16, "PAID_SEARCH": 9, "AI_REFERRALS": 4, "SOCIAL_MEDIA": 19}, "q1_2026_total": 1143, "q1_2026_meta": 49, "quarterly": {"2025-Q3": {"total": 800, "PAID_SOCIAL": 15, "PAID_SEARCH": 2, "ORGANIC_SEARCH": 20, "DIRECT_TRAFFIC": 60, "REFERRALS": 20, "EMAIL_MARKETING": 3, "OFFLINE": 675, "AI_REFERRALS": 1, "SOCIAL_MEDIA": 4}, "2025-Q4": {"total": 1100, "PAID_SOCIAL": 34, "PAID_SEARCH": 3, "ORGANIC_SEARCH": 25, "DIRECT_TRAFFIC": 80, "REFERRALS": 28, "EMAIL_MARKETING": 6, "OFFLINE": 915, "AI_REFERRALS": 1, "SOCIAL_MEDIA": 8}, "2026-Q1": {"total": 1143, "PAID_SOCIAL": 49, "PAID_SEARCH": 4, "ORGANIC_SEARCH": 27, "DIRECT_TRAFFIC": 86, "REFERRALS": 27, "EMAIL_MARKETING": 7, "OFFLINE": 932, "AI_REFERRALS": 2, "SOCIAL_MEDIA": 9}}};
+var SN = {"DIRECT_TRAFFIC":"Direct","OFFLINE":"Offline/Import","REFERRALS":"Referral","ORGANIC_SEARCH":"Organic Search","PAID_SEARCH":"Google Ads","PAID_SOCIAL":"Meta Ads","AI_REFERRALS":"AI/ChatGPT","SOCIAL_MEDIA":"LinkedIn Organic","EMAIL_MARKETING":"Email Marketing","":"Unknown"};
+
+var MM=[
+{"s":"2025-07-01","e":"2025-07-31","b":0,"c":0,"n":0},
+{"s":"2025-08-01","e":"2025-08-31","b":0,"c":0,"n":0},
+{"s":"2025-09-01","e":"2025-09-30","b":0,"c":0,"n":0},
+{"s":"2025-10-01","e":"2025-10-31","b":0,"c":6,"n":0},
+{"s":"2025-11-01","e":"2025-11-30","b":0,"c":15,"n":6},
+{"s":"2025-12-01","e":"2025-12-31","b":1,"c":15,"n":4},
+{"s":"2026-01-01","e":"2026-01-31","b":2,"c":19,"n":1},
+{"s":"2026-02-01","e":"2026-02-28","b":3,"c":16,"n":4},
+{"s":"2026-03-01","e":"2026-03-31","b":3,"c":27,"n":2},
+{"s":"2026-04-01","e":"2026-04-30","b":4,"c":0,"n":1}
+];
+function getMtg(){
+  var f=document.getElementById("df").value,t=document.getElementById("dt").value;
+  if(!f||!t)return{booked:0,completed:0,noshow:0};
+  var tb=0,tc=0,tn=0,matched=false;
+  for(var i=0;i<MM.length;i++){
+    var m=MM[i];
+    if(m.e>=f&&m.s<=t){tb+=m.b;tc+=m.c;tn+=m.n;matched=true}
+  }
+  if(!matched){return{booked:0,completed:0,noshow:0}}
+  return{booked:tb,completed:tc,noshow:tn};
+}
+var SCL = {"won":"p-w","lost":"p-l","neg":"p-n","disc":"p-d","cont":"p-c","att":"p-a"};
+var charts = {};
+var curTab = "mktg";
+var sk = "cd";
+var sd = -1;
+var attrModel = "mt";
+function setAM(m){attrModel=m;document.getElementById("amFT").className=m==="ft"?"btn btn-p":"btn";document.getElementById("amLT").className=m==="lt"?"btn btn-p":"btn";document.getElementById("amMT").className=m==="mt"?"btn btn-p":"btn";R()}
+
+function dc(){for(var k in charts){if(charts[k])charts[k].destroy()}charts={}}
+function fmt(n){if(!n)return"$0";if(n>=1e6)return"$"+(n/1e6).toFixed(1)+"M";if(n>=1e3)return"$"+(n/1e3).toFixed(0)+"K";return"$"+Math.round(n)}
+function pct(a,b){return b?((a/b)*100).toFixed(1)+"%":"0%"}
+
+function hasWeb(d){return((d.ltd1||"")+(d.ftd1||"")).toLowerCase().indexOf("webinar")>=0}
+function hasCnf(d){return["Conference","VRMA 25","FAVR 2025"].indexOf(d.ls)>=0||/convention|scale|porto|munich|barcelona/i.test(d.sol||"")}
+function isSDR(d){return(d.ftd1==="CRM_UI"||d.ftd1==="INTEGRATION"||d.ftd1==="EXTENSION")&&d.ft==="OFFLINE"}
+function hasMtg(d){return d.mb===1}
+function isEmail(d){return d.ft==="EMAIL_MARKETING"||d.lt==="EMAIL_MARKETING"||(d.ltd1||"").indexOf("hs_email")>=0||hasWeb(d)}
+function isMktg(d){if(d.ft==="OFFLINE"&&!isSDR(d)&&d.lt==="OFFLINE")return false;return true}
+function isSQL(d){return true}
+function isShow(d){return d.ms2==="show"}
+function isNoshow(d){return d.ms2==="noshow"}
+
+var LL=[{"s": "2024-01-01", "e": "2024-12-31", "t": 4029}, {"s": "2025-01-01", "e": "2025-01-31", "t": 124}, {"s": "2025-02-01", "e": "2025-02-28", "t": 86}, {"s": "2025-03-01", "e": "2025-03-31", "t": 421}, {"s": "2025-04-01", "e": "2025-04-30", "t": 1190}, {"s": "2025-05-01", "e": "2025-05-31", "t": 2965}, {"s": "2025-06-01", "e": "2025-06-30", "t": 42}, {"s": "2025-07-01", "e": "2025-07-31", "t": 399}, {"s": "2025-08-01", "e": "2025-08-31", "t": 188}, {"s": "2025-09-01", "e": "2025-09-30", "t": 196}, {"s": "2025-10-01", "e": "2025-10-31", "t": 898}, {"s": "2025-11-01", "e": "2025-11-30", "t": 478}, {"s": "2025-12-01", "e": "2025-12-31", "t": 112}, {"s": "2026-01-01", "e": "2026-01-31", "t": 835}, {"s": "2026-02-01", "e": "2026-02-28", "t": 206}, {"s": "2026-03-01", "e": "2026-03-31", "t": 99}, {"s": "2026-04-01", "e": "2026-04-30", "t": 633}];
+function getLeadCount(){
+  var f=document.getElementById("df").value,t=document.getElementById("dt").value;
+  var r=0;for(var i=0;i<LL.length;i++){if(LL[i].e>=f&&LL[i].s<=t)r+=LL[i].t}return r||0;
+}
+function getLeadsBySource(src){
+  var f=document.getElementById("df").value,t=document.getElementById("dt").value;
+  var map={"OFFLINE":"OFF","DIRECT_TRAFFIC":"DIR","PAID_SEARCH":"PS","REFERRALS":"REF","ORGANIC_SEARCH":"ORG","EMAIL_MARKETING":"EM","AI_REFERRALS":"AI","SOCIAL_MEDIA":"SM","PAID_SOCIAL":"PD"};
+  var k=map[src]||src;var r=0;for(var i=0;i<LL.length;i++){if(LL[i].e>=f&&LL[i].s<=t)r+=(LL[i][k]||0)}return r;
+}
+function getMktgLeads(){return getLeadCount()-getLeadsBySource("OFFLINE")}
+var SQ=[{"s":"2025-01-01","e":"2025-01-31","t":98},
+{"s":"2025-02-01","e":"2025-02-28","t":35},
+{"s":"2025-03-01","e":"2025-03-31","t":37},
+{"s":"2025-04-01","e":"2025-04-30","t":42},
+{"s":"2025-05-01","e":"2025-05-31","t":60},
+{"s":"2025-06-01","e":"2025-06-30","t":32},
+{"s":"2025-07-01","e":"2025-07-31","t":58},
+{"s":"2025-08-01","e":"2025-08-31","t":45},
+{"s":"2025-09-01","e":"2025-09-30","t":21},
+{"s":"2025-10-01","e":"2025-10-31","t":11},
+{"s":"2025-11-01","e":"2025-11-30","t":43},
+{"s":"2025-12-01","e":"2025-12-31","t":1184},
+{"s":"2026-01-01","e":"2026-01-31","t":418},
+{"s":"2026-02-01","e":"2026-02-28","t":1401},
+{"s":"2026-03-01","e":"2026-03-31","t":9},
+{"s":"2026-04-01","e":"2026-04-30","t":84},
+{"s":"2026-05-01","e":"2026-05-31","t":0},
+{"s":"2026-06-01","e":"2026-06-30","t":0}];
+function getSQLCount(){
+  var f=document.getElementById("df").value,t=document.getElementById("dt").value;
+  var r=0;for(var i=0;i<SQ.length;i++){if(SQ[i].e>=f&&SQ[i].s<=t)r+=SQ[i].t}return r||0;
+}
+
+var WL=[
+{s:"2025-07-01",e:"2025-07-31",t:0},{s:"2025-08-01",e:"2025-08-31",t:0},{s:"2025-09-01",e:"2025-09-30",t:0},
+{s:"2025-10-01",e:"2025-10-31",t:0},{s:"2025-11-01",e:"2025-11-30",t:0},{s:"2025-12-01",e:"2025-12-31",t:0},
+{s:"2026-01-01",e:"2026-01-31",t:23},{s:"2026-02-01",e:"2026-02-28",t:40},{s:"2026-03-01",e:"2026-03-31",t:34},
+{s:"2026-04-01",e:"2026-04-30",t:0}
+];
+var CL=[
+{s:"2025-07-01",e:"2025-07-31",t:0},{s:"2025-08-01",e:"2025-08-31",t:1},{s:"2025-09-01",e:"2025-09-30",t:0},
+{s:"2025-10-01",e:"2025-10-31",t:0},{s:"2025-11-01",e:"2025-11-30",t:11},{s:"2025-12-01",e:"2025-12-31",t:1},
+{s:"2026-01-01",e:"2026-01-31",t:13},{s:"2026-02-01",e:"2026-02-28",t:5},{s:"2026-03-01",e:"2026-03-31",t:0},
+{s:"2026-04-01",e:"2026-04-30",t:0}
+];
+function getWebLeads(){var f=document.getElementById("df").value,t=document.getElementById("dt").value;var r=0;for(var i=0;i<WL.length;i++){if(WL[i].e>=f&&WL[i].s<=t)r+=WL[i].t}return r}
+function getConfLeads(){var f=document.getElementById("df").value,t=document.getElementById("dt").value;var r=0;for(var i=0;i<CL.length;i++){if(CL[i].e>=f&&CL[i].s<=t)r+=CL[i].t}return r}
+
+function tags(d){
+  var t=[];
+  if(d.ft)t.push({l:"FT: "+(SN[d.ft]||d.ft),c:"t-ft"});
+  if(d.lt&&d.lt!==d.ft)t.push({l:"LT: "+(SN[d.lt]||d.lt),c:"t-lt"});
+  if(d.ft==="PAID_SEARCH")t.push({l:"Google: "+(d.ftd2||d.ftd1||"Brand").substring(0,20),c:"t-ps"});
+  if(d.ft==="PAID_SOCIAL"||(d.ftd1||"").indexOf("Facebook")>=0)t.push({l:"Meta"+(d.ftd2?" · "+d.ftd2.substring(0,18):""),c:"t-meta"});
+  if(d.lt==="PAID_SOCIAL"||(d.ltd1||"").indexOf("Facebook")>=0)t.push({l:"Meta (LT)",c:"t-meta"});
+  if(hasWeb(d))t.push({l:"Webinar",c:"t-web"});
+  if(d.lt==="EMAIL_MARKETING"&&!hasWeb(d))t.push({l:"Email",c:"t-em"});
+  if((d.ltd1||"").indexOf("hs_email")>=0)t.push({l:"HS Email",c:"t-em"});
+  if(d.ft==="ORGANIC_SEARCH")t.push({l:"SEO"+(d.ftd2==="GOOGLE"?" (G)":""),c:"t-org"});
+  if(d.lt==="ORGANIC_SEARCH"&&d.ft!=="ORGANIC_SEARCH")t.push({l:"SEO (LT)",c:"t-org"});
+  if(d.ft==="AI_REFERRALS"||d.lt==="AI_REFERRALS")t.push({l:"ChatGPT",c:"t-ai"});
+  if(hasCnf(d))t.push({l:"Conference"+(d.ls&&d.ls!=="Conference"?" · "+d.ls:""),c:"t-conf"});
+  if(d.sol&&!/convention|scale|porto|munich|barcelona|other/i.test(d.sol)&&d.sol!=="")t.push({l:"SR: "+d.sol,c:"t-sr"});
+  if(d.ls&&["Conference","VRMA 25","FAVR 2025"].indexOf(d.ls)<0)t.push({l:"LS: "+d.ls,c:"t-ls"});
+  if(isSDR(d))t.push({l:"Outbound/SDR",c:"t-sdr"});
+  if(d.ft==="REFERRALS")t.push({l:"Referral",c:"t-ref"});
+  if(d.lt==="REFERRALS"&&d.ft!=="REFERRALS")t.push({l:"Referral (LT)",c:"t-ref"});
+  if(d.sr)t.push({l:"Says: "+d.sr,c:"t-sr"});
+  if(d.wn)t.push({l:"Webinar: "+d.wn.substring(0,30),c:"t-web"});
+  if(d.ce&&!hasCnf(d))t.push({l:"Event: "+d.ce,c:"t-conf"});
+  return t;
+}
+
+function setP(p){
+  var m={"all":["2023-01-01","2026-12-31"],"q1":["2026-01-01","2026-03-31"],"q4":["2025-10-01","2025-12-31"],"ytd":["2026-01-01","2026-03-31"]};
+  document.getElementById("df").value=m[p][0];document.getElementById("dt").value=m[p][1];R();
+}
+function sT(t,el){
+  curTab=t;
+  var tabs=["mktg","sales","web","conf","journey"];
+  for(var i=0;i<tabs.length;i++)document.getElementById("tab-"+tabs[i]).style.display=tabs[i]===t?"block":"none";
+  var btns=document.querySelectorAll(".tab");
+  for(var i=0;i<btns.length;i++)btns[i].classList.remove("on");
+  if(el)el.classList.add("on");R();
+}
+function srt(k){if(sk===k)sd*=-1;else{sk=k;sd=-1}R()}
+
+function fil(){
+  var df=document.getElementById("df").value,dt=document.getElementById("dt").value;
+  var fs=document.getElementById("fS").value,fc=document.getElementById("fC").value;
+  var q=document.getElementById("fQ").value.toLowerCase();
+  return D.filter(function(d){
+    if(d.w||d.l){var dd=d.cd||d.cr;if(dd<df||dd>dt)return false;}
+    if(fs==="won"&&!d.w)return false;if(fs==="lost"&&!d.l)return false;if(fs==="open"&&(d.w||d.l))return false;
+    if(fc==="ps"&&!d.ch_google)return false;
+    if(fc==="ms"&&!d.ch_meta)return false;
+    if(fc==="em"&&!d.ch_email)return false;if(fc==="os"&&!d.ch_organic)return false;
+    if(fc==="ref"&&!d.ch_ref)return false;
+    if(fc==="web"&&!d.ch_webinar)return false;if(fc==="conf"&&!d.ch_conf)return false;
+    if(fc==="sdr"&&!d.ch_sdr)return false;
+    if(q&&d.n.toLowerCase().indexOf(q)<0)return false;
+    return true;
+  });
+}
+
+function demoStat(d){
+  if(d.ms2==="show")return '<span style="color:var(--g);font-weight:700;font-size:9px">Completed</span>';
+  if(d.ms2==="noshow")return '<span style="color:var(--r);font-weight:700;font-size:9px">No-show</span>';
+  if(d.ms2==="sched")return '<span style="color:var(--am);font-weight:700;font-size:9px">Scheduled</span>';
+  if(d.ms2==="booked")return '<span style="color:var(--am);font-size:9px">Booked</span>';
+  if(d.ms2==="unknown")return '<span style="color:var(--am);font-size:9px">Booked</span>';
+  return "\u2014";
+}
+
+function row(d){
+  var tg=tags(d);
+  var nm=d.url?'<a href="'+d.url+'" target="_blank">'+d.n+"</a>":d.n;
+  var tgH="";for(var i=0;i<tg.length;i++)tgH+='<span class="tag '+tg[i].c+'">'+tg[i].l+"</span>";
+  return "<tr><td style='font-weight:600;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap'>"+nm+"</td><td class='mono'>"+(d.list||"\u2014")+"</td><td class='mono'>"+(d.a?fmt(d.a):"\u2014")+"</td><td class='mono'>"+(d.mrr?fmt(d.mrr):"\u2014")+"</td><td><span class='pill "+(SCL[d.sc]||"p-a")+"'>"+d.sn+"</span></td><td>"+demoStat(d)+"</td><td class='mono' style='color:var(--m)'>"+d.cr+"</td><td style='font-size:11px;color:#9CA3AF'>"+(d.sr||"\u2014")+"</td><td><div class='tags'>"+tgH+"</div></td></tr>";
+}
+
+function funnel(id,stages){
+  var mx=1;for(var i=0;i<stages.length;i++)if(stages[i].n>mx)mx=stages[i].n;
+  var clrs=["#3B82F6","#8B5CF6","#F59E0B","#06B6D4","#10B981","#EF4444","#EC4899"];
+  var h="";
+  for(var i=0;i<stages.length;i++){
+    var p=Math.max((stages[i].n/mx)*100,4);
+    h+='<div class="frow"><div class="flbl">'+stages[i].l+'</div><div class="fbar" style="width:'+p+"%;background:"+clrs[i%7]+'">'+stages[i].n+'</div><div class="fval">'+fmt(stages[i].v)+" MRR \u00b7 "+stages[i].r+"</div></div>";
+  }
+  document.getElementById(id).innerHTML=h;
+}
+
+var _kd={won:[],lost:[],open:[],all:[]};
+function showModal(title,key){
+  var items=_kd[key]||[];
+  document.getElementById("modalTitle").textContent=title;
+  document.getElementById("modalCnt").textContent=items.length+" records";
+  var h="<table><thead><tr><th>DATE</th><th>PROSPECT</th><th>LISTINGS</th><th>MRR</th><th>STAGE</th></tr></thead><tbody>";
+  for(var i=0;i<items.length;i++){
+    var it=items[i];
+    var dt=(it.cd&&(it.w||it.l))?it.cd:it.cr;
+    var nm=it.url?"<a href='"+it.url+"' target='_blank'>"+it.n+"</a>":it.n;
+    h+="<tr><td style='color:var(--m)'>"+dt+"</td><td>"+nm+"</td><td class='mono'>"+(it.list||"\u2014")+"</td><td>"+(it.mrr?fmt(it.mrr):"\u2014")+"</td><td><span class='pill "+(SCL[it.sc]||"p-a")+"'>"+it.sn+"</span></td></tr>";
+  }
+  h+="</tbody></table>";
+  document.getElementById("modalBody").innerHTML=h;
+  document.getElementById("modalBg").classList.add("show");
+}
+function closeModal(){document.getElementById("modalBg").classList.remove("show")}
+
+function kpis(id,d){
+  var won=[],lost=[],open=[];
+  for(var i=0;i<d.length;i++){if(d[i].w)won.push(d[i]);else if(d[i].l)lost.push(d[i]);else open.push(d[i])}
+  _kd={won:won,lost:lost,open:open,all:d};
+  var wR=0,wMRR=0,aMRR=0;
+  for(var i=0;i<won.length;i++){wR+=won[i].a;wMRR+=(won[i].mrr||0)}
+  for(var i=0;i<open.length;i++){aMRR+=(open[i].mrr||0)}
+  var wr=(won.length+lost.length)?((won.length/(won.length+lost.length))*100):0;
+  var m=getMtg();
+  var wList=0,oList=0,aList=0;
+  for(var i=0;i<won.length;i++)wList+=(won[i].list||0);
+  for(var i=0;i<open.length;i++)oList+=(open[i].list||0);
+  for(var i=0;i<d.length;i++)aList+=(d[i].list||0);
+
+  var kp=function(key,title,inner){return'<div class="ki" style="cursor:pointer" onclick="showModal(\''+title+"','"+key+"')\">" +inner+'</div>'};
+
+  document.getElementById(id).innerHTML=
+    kp("open","Open Deals",'<div class="kl">Open Deals</div><div class="kv">'+open.length+'</div><div class="ks">in pipeline</div>')+
+    kp("won","Customers Won",'<div class="kl">Won MRR</div><div class="kv" style="color:var(--g)">'+fmt(wMRR)+'</div><div class="ks">'+won.length+' customers</div>')+
+    kp("won","Customers Won",'<div class="kl">Won ARR</div><div class="kv" style="color:var(--g)">'+fmt(wMRR*12)+'</div>')+
+    kp("open","Pipeline Deals",'<div class="kl">Pipeline MRR</div><div class="kv" style="color:var(--a)">'+fmt(aMRR)+'</div>')+
+    '<div class="ki"><div class="kl">Win Rate</div><div class="kv">'+wr.toFixed(1)+'%</div><div class="ks">'+won.length+'W / '+(won.length+lost.length)+' closed</div></div>'+
+    '<div class="ki"><div class="kl">SQL Rate</div><div class="kv">'+pct(getSQLCount(),getLeadCount()||1)+'</div><div class="ks">'+getSQLCount()+' SQLs / '+getLeadCount()+' leads</div></div>'+
+    kp("all","Demo Booked",'<div class="kl">Demo Booked</div><div class="kv" style="color:var(--cy)">'+(m.booked+m.completed+m.noshow)+'</div><div class="ks">Discovery Meetings</div>')+
+    kp("all","Demo Completed",'<div class="kl">Demo Completed</div><div class="kv" style="color:var(--g)">'+m.completed+'</div><div class="ks">'+pct(m.completed,(m.booked+m.completed+m.noshow)||1)+' show rate</div>')+
+    kp("all","All Deals — Listings",'<div class="kl">Total Listings</div><div class="kv" style="color:var(--or)">'+aList.toLocaleString()+'</div><div class="ks">all deals</div>')+
+    kp("open","Pipeline — Listings",'<div class="kl">Pipeline Listings</div><div class="kv" style="color:var(--a)">'+oList.toLocaleString()+'</div><div class="ks">open deals</div>')+
+    kp("won","Won — Listings",'<div class="kl">Won Listings</div><div class="kv" style="color:var(--g)">'+wList.toLocaleString()+'</div><div class="ks">customers</div>');
+}
+
+function mkFunnel(id,d,leadType){
+  var won=d.filter(function(x){return x.w});
+  var wMRR=0;for(var i=0;i<won.length;i++)wMRR+=(won[i].mrr||0);
+  var lc=leadType==="mktg"?getMktgLeads():getLeadCount();
+  var sqlc=getSQLCount();
+  var m=getMtg();
+  var open=d.filter(function(x){return !x.w&&!x.l});
+  funnel(id,[
+    {l:"Leads In",n:lc,v:0,r:"100%"},
+    {l:"SQLs",n:sqlc,v:0,r:pct(sqlc,lc)},
+    {l:"Demo Booked",n:m.booked+m.completed+m.noshow,v:0,r:pct(m.booked+m.completed+m.noshow,lc)},
+    {l:"Demo Completed",n:m.completed,v:0,r:pct(m.completed,m.booked+m.completed+m.noshow||1)},
+    {l:"Opportunity",n:open.length,v:0,r:pct(open.length,lc)},
+    {l:"Closed Won",n:won.length,v:wMRR,r:pct(won.length,d.length||1)}
+  ]);
+}
+
+function donut(canvasId,data,key){try{
+  var c={};for(var i=0;i<data.length;i++){var s=SN[data[i][key]]||"Unknown";c[s]=(c[s]||0)+1}
+  var entries=[];for(var k in c)entries.push([k,c[k]]);
+  entries.sort(function(a,b){return b[1]-a[1]});
+  var clrs=["#3B82F6","#6B7280","#10B981","#8B5CF6","#F59E0B","#EC4899","#06B6D4","#F97316","#A78BFA","#475569"];
+  charts[canvasId]=new Chart(document.getElementById(canvasId),{
+    type:"doughnut",
+    data:{labels:entries.map(function(x){return x[0]}),datasets:[{data:entries.map(function(x){return x[1]}),backgroundColor:clrs,borderWidth:0}]},
+    options:{responsive:true,cutout:"55%",plugins:{legend:{position:"right",labels:{color:"#7A8599",font:{size:9},padding:5,boxWidth:8}}}}
+  });}catch(e){console.warn("Chart error:",e)}
+}
+
+function tblH(id){document.getElementById(id).innerHTML="<tr><th onclick=\"srt('n')\">Prospect</th><th onclick=\"srt('list')\">List.</th><th onclick=\"srt('a')\">Value</th><th onclick=\"srt('mrr')\">MRR</th><th>Stage</th><th>Demo</th><th onclick=\"srt('cr')\">Created</th><th>Self-Report</th><th>Touchpoints</th></tr>"}
+
+function ftCh(d){
+  var s=d.ft||"";
+  if(s==="PAID_SOCIAL")return"Meta Ads";
+  if(s==="PAID_SEARCH")return"Google Ads";
+  if(s==="ORGANIC_SEARCH")return"Organic Search";
+  if(s==="DIRECT_TRAFFIC")return"Direct/Website";
+  if(s==="REFERRALS")return"Referral";
+  if(s==="AI_REFERRALS")return"AI/ChatGPT";
+  if(s==="SOCIAL_MEDIA")return"LinkedIn Organic";
+  if(s==="EMAIL_MARKETING")return"Email Nurture";
+  if(d.ch_sdr)return"Outbound/SDR";
+  if(d.ch_conf)return"Conference";
+  if(s==="OFFLINE")return"Outbound/SDR";
+  return"Direct/Website";
+}
+function ltCh(d){
+  var s=d.lt||"";
+  if(s==="PAID_SOCIAL")return"Meta Ads";
+  if(s==="PAID_SEARCH")return"Google Ads";
+  if(s==="ORGANIC_SEARCH")return"Organic Search";
+  if(s==="DIRECT_TRAFFIC")return"Direct/Website";
+  if(s==="REFERRALS")return"Referral";
+  if(s==="AI_REFERRALS")return"AI/ChatGPT";
+  if(s==="SOCIAL_MEDIA")return"LinkedIn Organic";
+  if(s==="EMAIL_MARKETING"){
+    var l1=d.ltd1||"";
+    if(l1.toLowerCase().indexOf("webinar")>=0)return"Webinar";
+    return"Email Nurture";
+  }
+  if(d.ch_conf)return"Conference";
+  if(s==="OFFLINE"&&d.ch_sdr)return"Outbound/SDR";
+  return"Direct/Website";
+}
+function calcCost(){
+  var md=fil().filter(isMktg);
+  var chList=["Meta Ads","Google Ads","Webinar","Email Nurture","Organic Search","Direct/Website","Referral","LinkedIn Organic","Outbound/SDR","Conference","AI/ChatGPT"];
+  var mtMatch={
+    "Meta Ads":function(d){return d.ch_meta===1},
+    "Google Ads":function(d){return d.ch_google===1},
+    "Webinar":function(d){return d.ch_webinar===1},
+    "Email Nurture":function(d){return d.ch_email===1},
+    "Organic Search":function(d){return d.ch_organic===1},
+    "Direct/Website":function(d){return d.ch_direct===1},
+    "Referral":function(d){return d.ch_ref===1},
+    "LinkedIn Organic":function(d){return d.ch_linkedin===1},
+    "Outbound/SDR":function(d){return d.ch_sdr===1},
+    "Conference":function(d){return d.ch_conf===1},
+    "AI/ChatGPT":function(d){return d.ch_ai===1}
+  };
+  var am=attrModel;
+  var lbl=am==="ft"?"First-Touch":am==="lt"?"Last-Touch":"Multi-Touch";
+  var html="<table><thead><tr><th>Channel ("+lbl+")</th><th>Deals</th><th>Demo</th><th>Won</th><th>Won MRR</th><th>Win %</th></tr></thead><tbody>";
+  var totL=0,totMtg=0,totWon=0,totWMRR=0;
+  for(var ci=0;ci<chList.length;ci++){
+    var cn=chList[ci];
+    var matched;
+    if(am==="mt"){matched=md.filter(mtMatch[cn]);}
+    else if(am==="ft"){matched=md.filter(function(d){return ftCh(d)===cn});}
+    else{matched=md.filter(function(d){return ltCh(d)===cn});}
+    var leads=matched.length;
+    var mtg=matched.filter(hasMtg).length;
+    var won=matched.filter(function(d){return d.w}).length;
+    var wMRR=0;matched.filter(function(d){return d.w}).forEach(function(d){wMRR+=(d.mrr||0)});
+    totL+=leads;totMtg+=mtg;totWon+=won;totWMRR+=wMRR;
+    if(leads>0)html+="<tr><td><strong>"+cn+"</strong></td><td class='mono'>"+leads+"</td><td class='mono'>"+mtg+"</td><td class='mono' style='color:var(--g)'>"+won+"</td><td class='mono' style='color:var(--g)'>"+fmt(wMRR)+"</td><td class='mono'>"+pct(won,leads)+"</td></tr>";
+  }
+  var totLbl=am==="mt"?"TOTAL (multi-touch, sum > unique)":"TOTAL ("+lbl+", unique deals)";
+  html+="<tr style='border-top:2px solid var(--bd);font-weight:700'><td>"+totLbl+"</td><td class='mono'>"+totL+"</td><td class='mono'>"+totMtg+"</td><td class='mono' style='color:var(--g)'>"+totWon+"</td><td class='mono' style='color:var(--g)'>"+fmt(totWMRR)+"</td><td class='mono'>"+pct(totWon,totL)+"</td></tr></tbody></table>";
+  document.getElementById("costTbl").innerHTML=html;
+}
+
+function R(){
+  dc();
+  var data=fil();
+  data.sort(function(a,b){
+    var va=a[sk],vb=b[sk];
+    if(sk==="a"||sk==="list"||sk==="mrr")return(((+va||0)-(+vb||0))*sd);
+    return String(va||"").localeCompare(String(vb||""))*sd;
+  });
+
+  if(curTab==="mktg"){
+    var md=data.filter(isMktg);
+    kpis("mK",md);mkFunnel("mF",md,"mktg");donut("mFC",md,"ft");donut("mLC",md,"lt");
+    calcCost();
+    document.getElementById("mCnt").textContent=md.length+" marketing-attributed deals";
+    tblH("mTH");document.getElementById("mTB").innerHTML=md.map(row).join("");
+  }
+  else if(curTab==="sales"){
+    kpis("sK",data);mkFunnel("sF",data,"all");donut("sFC",data,"ft");donut("sLC",data,"lt");
+    document.getElementById("sCnt").textContent=data.length+" deals";
+    tblH("sTH");document.getElementById("sTB").innerHTML=data.map(row).join("");
+  }
+  else if(curTab==="web"){
+    var allWeb=data.filter(function(x){return x.ch_webinar===1||x.wn});
+    var webNames={};allWeb.forEach(function(x){if(x.wn){var names=x.wn.split(";");for(var k=0;k<names.length;k++){var nm=names[k].trim();if(nm)webNames[nm]=1}}});
+    var wsel=document.getElementById("webSel");
+    var wv=wsel.value;
+    wsel.innerHTML='<option value="all">All Webinars ('+allWeb.length+')</option>';
+    Object.keys(webNames).sort().forEach(function(n){
+      wsel.innerHTML+='<option value="'+n+'"'+(wv===n?' selected':'')+'>'+n.substring(0,60)+'</option>';
+    });
+    var wd=allWeb;
+    if(wv!=="all"){wd=allWeb.filter(function(x){return x.wn&&x.wn.indexOf(wv)>=0})}
+    var wWon=wd.filter(function(x){return x.w}),wLost=wd.filter(function(x){return x.l}),wOpen=wd.filter(function(x){return !x.w&&!x.l});
+    var wMRR=0,wPipe=0;for(var i=0;i<wWon.length;i++)wMRR+=(wWon[i].mrr||0);for(var i=0;i<wOpen.length;i++)wPipe+=(wOpen[i].mrr||0);
+    var wLc=getWebLeads();var wWr=(wWon.length+wLost.length)?((wWon.length/(wWon.length+wLost.length))*100):0;var m=getMtg();
+    document.getElementById("wK").innerHTML=
+      '<div class="ki"><div class="kl">Webinar Leads</div><div class="kv">'+wLc+'</div><div class="ks">contact_origins=Webinar</div></div>'+
+      '<div class="ki"><div class="kl">Open Deals</div><div class="kv">'+wOpen.length+'</div></div>'+
+      '<div class="ki"><div class="kl">Won MRR</div><div class="kv" style="color:var(--g)">'+fmt(wMRR)+'</div><div class="ks">'+wWon.length+' customers</div></div>'+
+      '<div class="ki"><div class="kl">Won ARR</div><div class="kv" style="color:var(--g)">'+fmt(wMRR*12)+'</div></div>'+
+      '<div class="ki"><div class="kl">Pipeline MRR</div><div class="kv" style="color:var(--a)">'+fmt(wPipe)+'</div></div>'+
+      '<div class="ki"><div class="kl">Win Rate</div><div class="kv">'+wWr.toFixed(1)+'%</div></div>';
+    funnel("wF",[
+      {l:"Webinar Leads",n:wLc,v:0,r:"100%"},
+      {l:"SQLs (Deals)",n:wd.length,v:0,r:pct(wd.length,wLc)},
+      {l:"Demo Booked",n:m.booked+m.completed+m.noshow,v:0,r:pct(m.booked+m.completed+m.noshow,wLc)},
+      {l:"Demo Completed",n:m.completed,v:0,r:pct(m.completed,(m.booked+m.completed+m.noshow)||1)},
+      {l:"Closed Won",n:wWon.length,v:wMRR,r:pct(wWon.length,wd.length||1)}
+    ]);
+    document.getElementById("wCnt").textContent=wd.length+" webinar-attributed deals";
+    tblH("wTH");document.getElementById("wTB").innerHTML=wd.map(row).join("");
+  }
+  else if(curTab==="conf"){
+    var allConf=data.filter(function(x){return x.ch_conf===1||x.ce||x.ls==="Conference"||x.ls==="VRMA 25"||x.ls==="FAVR 2025"});
+    var confNames={};allConf.forEach(function(x){var ev=x.ce||x.sol||x.ls||"";if(ev&&ev!=="Conference")confNames[ev]=1});
+    var sel=document.getElementById("confSel");
+    var cv=sel.value;
+    sel.innerHTML='<option value="all">All Conferences ('+allConf.length+')</option>';
+    Object.keys(confNames).sort().forEach(function(n){
+      sel.innerHTML+='<option value="'+n+'"'+(cv===n?' selected':'')+'>'+n+'</option>';
+    });
+    var cd=allConf;
+    if(cv!=="all"){cd=allConf.filter(function(x){return (x.ce||x.sol||x.ls||"")===cv||((x.ce||"").indexOf(cv)>=0)})}
+    var cWon=cd.filter(function(x){return x.w}),cLost=cd.filter(function(x){return x.l}),cOpen=cd.filter(function(x){return !x.w&&!x.l});
+    var cMRR=0,cPipe=0;for(var i=0;i<cWon.length;i++)cMRR+=(cWon[i].mrr||0);for(var i=0;i<cOpen.length;i++)cPipe+=(cOpen[i].mrr||0);
+    var cLc=getConfLeads();var cWr=(cWon.length+cLost.length)?((cWon.length/(cWon.length+cLost.length))*100):0;var m=getMtg();
+    document.getElementById("cK").innerHTML=
+      '<div class="ki"><div class="kl">Conference Leads</div><div class="kv">'+cLc+'</div><div class="ks">contact_origins=Conference</div></div>'+
+      '<div class="ki"><div class="kl">Open Deals</div><div class="kv">'+cOpen.length+'</div></div>'+
+      '<div class="ki"><div class="kl">Won MRR</div><div class="kv" style="color:var(--g)">'+fmt(cMRR)+'</div><div class="ks">'+cWon.length+' customers</div></div>'+
+      '<div class="ki"><div class="kl">Won ARR</div><div class="kv" style="color:var(--g)">'+fmt(cMRR*12)+'</div></div>'+
+      '<div class="ki"><div class="kl">Pipeline MRR</div><div class="kv" style="color:var(--a)">'+fmt(cPipe)+'</div></div>'+
+      '<div class="ki"><div class="kl">Win Rate</div><div class="kv">'+cWr.toFixed(1)+'%</div></div>';
+    funnel("cF",[
+      {l:"Conference Leads",n:cLc,v:0,r:"100%"},
+      {l:"SQLs (Deals)",n:cd.length,v:0,r:pct(cd.length,cLc)},
+      {l:"Demo Booked",n:m.booked+m.completed+m.noshow,v:0,r:pct(m.booked+m.completed+m.noshow,cLc)},
+      {l:"Demo Completed",n:m.completed,v:0,r:pct(m.completed,(m.booked+m.completed+m.noshow)||1)},
+      {l:"Closed Won",n:cWon.length,v:cMRR,r:pct(cWon.length,cd.length||1)}
+    ]);
+    document.getElementById("cCnt").textContent=cd.length+" conference-attributed deals";
+    tblH("cTH");document.getElementById("cTB").innerHTML=cd.map(row).join("");
+  }
+  else{
+    var tL=0,tMRR=0;
+    for(var i=0;i<data.length;i++){tL+=(data[i].list||0);tMRR+=(data[i].mrr||0)}
+    document.getElementById("jK").innerHTML=
+      '<div class="ki"><div class="kl">Deals</div><div class="kv">'+data.length+'</div></div>'+
+      '<div class="ki"><div class="kl">Listings</div><div class="kv">'+tL.toLocaleString()+'</div></div>'+
+      '<div class="ki"><div class="kl">Total MRR</div><div class="kv">'+fmt(tMRR)+'</div></div>'+
+      '<div class="ki"><div class="kl">Demo Booked</div><div class="kv" style="color:var(--cy)">'+data.filter(function(x){return x.mb===1}).length+'</div></div>'+
+      '<div class="ki"><div class="kl">Demo Completed</div><div class="kv" style="color:var(--g)">'+data.filter(function(x){return x.ms2==="show"}).length+'</div></div>'+
+      '<div class="ki"><div class="kl">No-shows</div><div class="kv" style="color:var(--r)">'+data.filter(function(x){return x.ms2==="noshow"}).length+'</div></div>'+
+      '<div class="ki"><div class="kl">Webinar</div><div class="kv">'+data.filter(hasWeb).length+'</div></div>';
+    document.getElementById("jCnt").textContent=data.length+" deals";
+    tblH("jTH");document.getElementById("jTB").innerHTML=data.map(row).join("");
+  }
+}
+
+R();
+// Robust date change detection for mobile
+var _ldf="",_ldt="",_lfs="",_lfc="";
+setInterval(function(){
+  var df=document.getElementById("df").value,dt=document.getElementById("dt").value;
+  var fs=document.getElementById("fS").value,fc=document.getElementById("fC").value;
+  if(df!==_ldf||dt!==_ldt||fs!==_lfs||fc!==_lfc){_ldf=df;_ldt=dt;_lfs=fs;_lfc=fc;R()}
+},400);
+// Also attach every event type that might fire on mobile
+["change","input","blur"].forEach(function(ev){
+  document.getElementById("df").addEventListener(ev,R);
+  document.getElementById("dt").addEventListener(ev,R);
+  document.getElementById("fS").addEventListener(ev,R);
+  document.getElementById("fC").addEventListener(ev,R);
+});
+</script>
+</body>
+</html>
