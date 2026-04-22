@@ -1,0 +1,12 @@
+# Secrets — NEVER commit
+config.json
+
+# Build output
+output/
+
+# Data (regenerated from HubSpot)
+data/*.json
+
+# OS
+.DS_Store
+*.swp

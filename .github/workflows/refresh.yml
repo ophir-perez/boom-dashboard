@@ -1,0 +1,62 @@
+name: Refresh Dashboard
+
+on:
+  schedule:
+    - cron: '0 7 * * *'   # Daily at 7 AM UTC (9 AM Israel time)
+  workflow_dispatch:        # Also allows manual "Run workflow" button in GitHub UI
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Pull deals
+        env:
+          HUBSPOT_TOKEN: ${{ secrets.HUBSPOT_TOKEN }}
+        run: python scripts/pull_deals.py
+
+      - name: Pull lead counts
+        env:
+          HUBSPOT_TOKEN: ${{ secrets.HUBSPOT_TOKEN }}
+        run: python scripts/pull_leads.py
+
+      - name: Pull SQL counts
+        env:
+          HUBSPOT_TOKEN: ${{ secrets.HUBSPOT_TOKEN }}
+        run: python scripts/pull_sqls.py
+
+      - name: Pull meetings
+        env:
+          HUBSPOT_TOKEN: ${{ secrets.HUBSPOT_TOKEN }}
+        run: python scripts/pull_meetings.py
+
+      - name: Pull ad spend (optional — requires ads_read scope)
+        env:
+          HUBSPOT_TOKEN: ${{ secrets.HUBSPOT_TOKEN }}
+        run: python scripts/pull_ads.py || echo "Skipped — ads_read scope not enabled"
+
+      - name: Build dashboard
+        run: python scripts/build.py
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./output
+          publish_branch: gh-pages
+          commit_message: "Dashboard refresh ${{ github.run_id }}"
+          force_orphan: false
