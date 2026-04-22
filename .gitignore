@@ -6,6 +6,7 @@ output/
 
 # Data (regenerated from HubSpot)
 data/*.json
+!data/.gitkeep
 
 # OS
 .DS_Store
