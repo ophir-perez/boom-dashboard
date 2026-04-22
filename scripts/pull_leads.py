@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Pull monthly contact creation counts from HubSpot."""
-import json, requests, os
+import json, requests, os, time
 from datetime import datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -48,6 +48,7 @@ def main():
     total = 0
     for start, end, label in months:
         count = count_contacts_in_range(start, end)
+        time.sleep(0.3)  # Avoid HubSpot rate limit (100 req/10s)
         if count > 0:
             leads.append({"s": start, "e": end, "t": count})
             total += count

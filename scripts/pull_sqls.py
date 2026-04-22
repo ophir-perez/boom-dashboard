@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Pull monthly SQL counts (contacts entering opportunity stage) from HubSpot."""
-import json, requests, os
+import json, requests, os, time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -46,6 +46,7 @@ def main():
     total = 0
     for start, end, label in months:
         count = count_sqls_in_range(start, end)
+        time.sleep(0.3)
         sqls.append({"s": start, "e": end, "t": count})
         if count > 0:
             total += count
