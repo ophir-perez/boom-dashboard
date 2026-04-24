@@ -90,7 +90,7 @@ a{color:var(--a);text-decoration:none}a:hover{text-decoration:underline}
 <div class="c">
 <div class="hdr"><div>
   <h1>Boom — Marketing & Sales Attribution Dashboard</h1>
-  <div class="sub">15,012 Leads · 186 Deals · 4,346 SQLs · MRR/ARR (hs_mrr) · HubSpot Links · Data as of __DATE__</div>
+  <div class="sub">__TOTAL_LEADS__ Leads · __TOTAL_DEALS__ Deals · __TOTAL_SQLS__ SQLs · MRR/ARR (hs_mrr) · HubSpot Links · Data as of __DATE__</div>
 </div></div>
 <div class="ctrl">
   <label>From</label><input type="date" id="df" value="2024-01-01">
@@ -186,6 +186,8 @@ function getMtg(){
   return{booked:tb,completed:tc,noshow:tn};
 }
 var SCL = {"won":"p-w","lost":"p-l","neg":"p-n","disc":"p-d","cont":"p-c","att":"p-a"};
+var MEETINGS=[];
+var ADS_SPEND={};
 var charts = {};
 var curTab = "mktg";
 var sk = "cd";
@@ -315,6 +317,16 @@ function funnel(id,stages){
 }
 
 var _kd={won:[],lost:[],open:[],all:[]};
+
+function getMeetingsInRange(outcomeFilter){
+  var f=document.getElementById("df").value,t=document.getElementById("dt").value;
+  return MEETINGS.filter(function(m){
+    if(!m.date||m.date<f||m.date>t)return false;
+    if(outcomeFilter&&outcomeFilter.length&&outcomeFilter.indexOf(m.outcome)<0)return false;
+    return true;
+  });
+}
+
 function showModal(title,key){
   var items=_kd[key]||[];
   document.getElementById("modalTitle").textContent=title;
@@ -330,6 +342,23 @@ function showModal(title,key){
   document.getElementById("modalBody").innerHTML=h;
   document.getElementById("modalBg").classList.add("show");
 }
+
+function showMeetingsModal(title, outcomeFilter){
+  var items=getMeetingsInRange(outcomeFilter);
+  document.getElementById("modalTitle").textContent=title;
+  document.getElementById("modalCnt").textContent=items.length+" meetings";
+  var outcomeColor={"COMPLETED":"var(--g)","SCHEDULED":"var(--am)","NO_SHOW":"var(--r)","CANCELED":"var(--m)","RESCHEDULED":"var(--am)"};
+  var h="<table><thead><tr><th>DATE</th><th>MEETING TITLE</th><th>OUTCOME</th></tr></thead><tbody>";
+  for(var i=0;i<items.length;i++){
+    var m=items[i];
+    var col=outcomeColor[m.outcome]||"var(--m)";
+    h+="<tr><td style='color:var(--m)'>"+m.date+"</td><td>"+m.title+"</td><td style='color:"+col+";font-weight:700;font-size:11px'>"+m.outcome+"</td></tr>";
+  }
+  h+="</tbody></table>";
+  document.getElementById("modalBody").innerHTML=h;
+  document.getElementById("modalBg").classList.add("show");
+}
+
 function closeModal(){document.getElementById("modalBg").classList.remove("show")}
 
 function kpis(id,d){
@@ -355,8 +384,8 @@ function kpis(id,d){
     kp("open","Pipeline Deals",'<div class="kl">Pipeline MRR</div><div class="kv" style="color:var(--a)">'+fmt(aMRR)+'</div>')+
     '<div class="ki"><div class="kl">Win Rate</div><div class="kv">'+wr.toFixed(1)+'%</div><div class="ks">'+won.length+'W / '+(won.length+lost.length)+' closed</div></div>'+
     '<div class="ki"><div class="kl">SQL Rate</div><div class="kv">'+pct(getSQLCount(),getLeadCount()||1)+'</div><div class="ks">'+getSQLCount()+' SQLs / '+getLeadCount()+' leads</div></div>'+
-    kp("all","Demo Booked",'<div class="kl">Demo Booked</div><div class="kv" style="color:var(--cy)">'+(m.booked+m.completed+m.noshow)+'</div><div class="ks">Discovery Meetings</div>')+
-    kp("all","Demo Completed",'<div class="kl">Demo Completed</div><div class="kv" style="color:var(--g)">'+m.completed+'</div><div class="ks">'+pct(m.completed,(m.booked+m.completed+m.noshow)||1)+' show rate</div>')+
+    '<div class="ki" style="cursor:pointer" onclick="showMeetingsModal(\'Demo Booked\',[])">'+'<div class="kl">Demo Booked</div><div class="kv" style="color:var(--cy)">'+(m.booked+m.completed+m.noshow)+'</div><div class="ks">Discovery Meetings</div></div>'+
+    '<div class="ki" style="cursor:pointer" onclick="showMeetingsModal(\'Demo Completed\',[\'COMPLETED\'])">'+'<div class="kl">Demo Completed</div><div class="kv" style="color:var(--g)">'+m.completed+'</div><div class="ks">'+pct(m.completed,(m.booked+m.completed+m.noshow)||1)+' show rate</div></div>'+
     kp("all","All Deals — Listings",'<div class="kl">Total Listings</div><div class="kv" style="color:var(--or)">'+aList.toLocaleString()+'</div><div class="ks">all deals</div>')+
     kp("open","Pipeline — Listings",'<div class="kl">Pipeline Listings</div><div class="kv" style="color:var(--a)">'+oList.toLocaleString()+'</div><div class="ks">open deals</div>')+
     kp("won","Won — Listings",'<div class="kl">Won Listings</div><div class="kv" style="color:var(--g)">'+wList.toLocaleString()+'</div><div class="ks">customers</div>');

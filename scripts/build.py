@@ -5,73 +5,100 @@ from datetime import datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+
+def load_json(path, default):
+    if os.path.exists(path):
+        with open(path) as f:
+            return json.load(f)
+    return default
+
+
+def js_monthly_array(data):
+    """Convert [{s,e,t},...] to compact JS array string."""
+    entries = [f'{{"s":"{d["s"]}","e":"{d["e"]}","t":{d["t"]}}}' for d in data]
+    return "[" + ",".join(entries) + "]"
+
+
+def js_meetings_array(data):
+    """Convert meetings list to compact JS array string."""
+    entries = []
+    for m in data:
+        title = json.dumps(m.get("title", ""))
+        entries.append(
+            f'{{"id":"{m["id"]}","title":{title},"date":"{m["date"]}","outcome":"{m["outcome"]}"}}'
+        )
+    return "[" + ",".join(entries) + "]"
+
+
 def main():
     print("Building dashboard...")
-    
-    # Load template
+
     with open(os.path.join(ROOT, "src", "template.html")) as f:
         html = f.read()
-    
-    # Load data
+
+    # Load required data
     with open(os.path.join(ROOT, "data", "deals.json")) as f:
         deals = json.load(f)
     with open(os.path.join(ROOT, "data", "leads.json")) as f:
         leads = json.load(f)
-    
-    # Load SQLs if available
-    sqls_path = os.path.join(ROOT, "data", "sqls.json")
-    if os.path.exists(sqls_path):
-        with open(sqls_path) as f:
-            sqls = json.load(f)
-        # Build SQ array JS
-        sq_entries = []
-        for s in sqls:
-            sq_entries.append(f'{{"s":"{s["s"]}","e":"{s["e"]}","t":{s["t"]}}}')
-        sq_js = "[" + ",\n".join(sq_entries) + "]"
-        # Replace the SQ array in the template
-        html = re.sub(r'var SQ=\[.*?\];', f'var SQ={sq_js};', html, flags=re.DOTALL)
-    
-    # Load ads summary if available
-    ads_path = os.path.join(ROOT, "data", "ads_summary.json")
-    if os.path.exists(ads_path):
-        with open(ads_path) as f:
-            ads = json.load(f)
-        # Inject ads data as JS variable
-        ads_js = f"var ADS_SPEND={json.dumps(ads)};"
-        html = html.replace("</script>", f"\n{ads_js}\n</script>", 1)
-    
-    # Replace placeholders
+
+    # Replace deal + lead placeholders
+    html = html.replace("__DEALS_DATA__", json.dumps(deals))
+    html = html.replace("__LEADS_DATA__", json.dumps(leads))
+
+    # SQLs
+    sqls = load_json(os.path.join(ROOT, "data", "sqls.json"), [])
+    if sqls:
+        html = re.sub(r'var SQ=\[.*?\];', f'var SQ={js_monthly_array(sqls)};', html, flags=re.DOTALL)
+
+    # Webinar leads
+    wl = load_json(os.path.join(ROOT, "data", "webinar_leads.json"), [])
+    if wl:
+        html = re.sub(r'var WL=\[.*?\];', f'var WL={js_monthly_array(wl)};', html, flags=re.DOTALL)
+
+    # Conference leads
+    cl = load_json(os.path.join(ROOT, "data", "conf_leads.json"), [])
+    if cl:
+        html = re.sub(r'var CL=\[.*?\];', f'var CL={js_monthly_array(cl)};', html, flags=re.DOTALL)
+
+    # Meetings — inject as JS variable for modal use
+    meetings = load_json(os.path.join(ROOT, "data", "meetings.json"), [])
+    mtg_js = f"var MEETINGS={js_meetings_array(meetings)};"
+    html = html.replace("var MEETINGS=[];", mtg_js)
+
+    # Ads summary
+    ads = load_json(os.path.join(ROOT, "data", "ads_summary.json"), None)
+    if ads:
+        html = html.replace("var ADS_SPEND={};", f"var ADS_SPEND={json.dumps(ads)};")
+
+    # Date stamp + subtitle counts
     today = datetime.now().strftime("%b %d, %Y")
-    deals_json = json.dumps(deals)
-    leads_json = json.dumps(leads)
-    
-    html = html.replace("__DEALS_DATA__", deals_json)
-    html = html.replace("__LEADS_DATA__", leads_json)
-    html = html.replace("Data as of __DATE__", f"Data as of {today}")
-    
-    # Update subtitle counts
     total_leads = sum(l["t"] for l in leads)
-    total_deals = len(deals)
     won = [d for d in deals if d.get("w")]
     lost = [d for d in deals if d.get("l")]
     opn = [d for d in deals if not d.get("w") and not d.get("l")]
-    
-    # Write output — boom-dashboard.html for local use, index.html for GitHub Pages
-    os.makedirs(os.path.join(ROOT, "output"), exist_ok=True)
-    outpath = os.path.join(ROOT, "output", "boom-dashboard.html")
-    index_path = os.path.join(ROOT, "output", "index.html")
-    with open(outpath, "w") as f:
-        f.write(html)
-    with open(index_path, "w") as f:
-        f.write(html)
+    total_sqls = sum(s["t"] for s in sqls)
+    total_wl = sum(m["t"] for m in wl)
+    total_cl = sum(m["t"] for m in cl)
 
-    print(f"\n  Dashboard built: {outpath}")
-    print(f"  Size: {len(html):,} bytes")
-    print(f"  Deals: {total_deals} (Won:{len(won)} Lost:{len(lost)} Open:{len(opn)})")
-    print(f"  Leads: {total_leads:,}")
-    print(f"  Won MRR: ${sum(d.get('mrr',0) for d in won):,.2f}")
-    print(f"\n  Local: file://{os.path.abspath(outpath)}")
-    print(f"  Pages: output/index.html → published to gh-pages branch")
+    html = html.replace("__DATE__", today)
+    html = html.replace("__TOTAL_LEADS__", f"{total_leads:,}")
+    html = html.replace("__TOTAL_DEALS__", str(len(deals)))
+    html = html.replace("__TOTAL_SQLS__", f"{total_sqls:,}")
+
+    # Write output
+    os.makedirs(os.path.join(ROOT, "output"), exist_ok=True)
+    for fname in ("boom-dashboard.html", "index.html"):
+        with open(os.path.join(ROOT, "output", fname), "w") as f:
+            f.write(html)
+
+    print(f"\n  Built: output/index.html ({len(html):,} bytes)")
+    print(f"  Deals: {len(deals)} (Won:{len(won)} Lost:{len(lost)} Open:{len(opn)})")
+    print(f"  Leads: {total_leads:,} | SQLs: {total_sqls:,}")
+    print(f"  Webinar leads: {total_wl:,} | Conference leads: {total_cl:,}")
+    print(f"  Meetings: {len(meetings)}")
+    print(f"  Won MRR: ${sum(d.get('mrr', 0) for d in won):,.2f}")
+
 
 if __name__ == "__main__":
     main()

@@ -32,7 +32,7 @@ jobs:
           HUBSPOT_TOKEN: ${{ secrets.HUBSPOT_TOKEN }}
         run: python scripts/pull_deals.py
 
-      - name: Pull lead counts
+      - name: Pull lead counts (total, webinar, conference)
         env:
           HUBSPOT_TOKEN: ${{ secrets.HUBSPOT_TOKEN }}
         run: python scripts/pull_leads.py
