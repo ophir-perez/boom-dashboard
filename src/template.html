@@ -248,12 +248,36 @@ var CL=[
 function getWebLeads(){var f=document.getElementById("df").value,t=document.getElementById("dt").value;var r=0;for(var i=0;i<WL.length;i++){if(WL[i].e>=f&&WL[i].s<=t)r+=WL[i].t}return r}
 function getConfLeads(){var f=document.getElementById("df").value,t=document.getElementById("dt").value;var r=0;for(var i=0;i<CL.length;i++){if(CL[i].e>=f&&CL[i].s<=t)r+=CL[i].t}return r}
 
+var SN2={"PAID_SEARCH":"Google Ads","PAID_SOCIAL":"Meta Ads","ORGANIC_SEARCH":"Organic","EMAIL_MARKETING":"Email","REFERRALS":"Referral","DIRECT_TRAFFIC":"Direct","SOCIAL_MEDIA":"LinkedIn Org","AI_REFERRALS":"ChatGPT","OFFLINE":"Offline/Import"};
 function tags(d){
   // Use pre-built touchpoint tags from Python if available
   if(d.tps&&d.tps.length)return d.tps;
-  // Fallback for deals with no contact data
+  // Reconstruct from raw ft/lt fields (fallback for old data)
   var t=[];
-  if(d.sr)t.push({l:"Says: "+d.sr,c:"t-sr"});
+  var ft=d.ft||"",lt=d.lt||"",ftd1=d.ftd1||"",ltd1=d.ltd1||"";
+  if(ft){
+    if(ft==="OFFLINE"&&(ftd1==="CRM_UI"||ftd1==="INTEGRATION"||ftd1==="EXTENSION"||!ftd1))
+      t.push({l:"Outbound/SDR",c:"t-sdr"});
+    else if(SN2[ft]){
+      t.push({l:"FT: "+SN2[ft],c:"t-ft"});
+      if(ft==="PAID_SEARCH")t.push({l:"Google Ads",c:"t-ps"});
+      if(ft==="PAID_SOCIAL")t.push({l:"Meta Ads",c:"t-meta"});
+      if(ft==="ORGANIC_SEARCH")t.push({l:"SEO",c:"t-org"});
+      if(ft==="AI_REFERRALS")t.push({l:"ChatGPT",c:"t-ai"});
+      if(ft==="REFERRALS")t.push({l:"Referral",c:"t-ref"});
+    } else t.push({l:"FT: "+ft,c:"t-ft"});
+  }
+  if(lt&&lt!==ft){
+    if(SN2[lt])t.push({l:"LT: "+SN2[lt],c:"t-lt"});
+    if(lt==="PAID_SOCIAL")t.push({l:"Meta (LT)",c:"t-meta"});
+    if(lt==="PAID_SEARCH")t.push({l:"Google (LT)",c:"t-ps"});
+    if(lt==="EMAIL_MARKETING"&&ltd1.toLowerCase().indexOf("webinar")>=0)t.push({l:"Webinar (LT)",c:"t-web"});
+  }
+  if(ltd1.toLowerCase().indexOf("webinar")>=0){var wname=ltd1.split("webinar:").pop().trim().substring(0,40);if(wname)t.push({l:"Webinar: "+wname,c:"t-web"});}
+  if(d.wn)t.push({l:"Webinar: "+d.wn.substring(0,38),c:"t-web"});
+  if(d.ls&&d.ls.indexOf("Conference")>=0)t.push({l:"Conf: "+d.ls.substring(0,30),c:"t-conf"});
+  if(d.sol&&d.sol.toLowerCase().indexOf("other")<0&&d.sol)t.push({l:"Event: "+d.sol.substring(0,28),c:"t-conf"});
+  if(d.sr&&d.sr.toLowerCase()!=="other")t.push({l:"Says: "+d.sr.substring(0,28),c:"t-sr"});
   return t;
 }
 
