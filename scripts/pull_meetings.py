@@ -53,15 +53,18 @@ def main():
     print("Pulling meetings from HubSpot...")
     raw = pull_meetings()
 
-    # Filter to Discovery meetings only (check activity_type field)
+    # Include Discovery Meetings + Conference 1:1 + meetings with no type (may be discovery)
+    # Exclude only clearly non-discovery types
+    EXCLUDE_TYPES = {"internal", "team meeting", "check-in", "onboarding"}
     discovery = []
     for m in raw:
         p = m["properties"]
         atype = (p.get("hs_activity_type") or "").lower()
         title = (p.get("hs_meeting_title") or "").lower()
-        # Include if activity type is Discovery, or title contains discovery/demo
-        if "discovery" in atype or "discovery" in title or "demo" in title or atype == "":
-            discovery.append(m)
+        # Exclude clearly non-discovery types
+        if any(x in atype for x in EXCLUDE_TYPES):
+            continue
+        discovery.append(m)
 
     print(f"\n  Total meetings fetched: {len(raw)}")
     print(f"  Discovery/Demo meetings: {len(discovery)}")

@@ -193,20 +193,21 @@ def get_deal_meetings(deal_ids):
         time.sleep(0.2)
 
     # Map deal_id -> best meeting outcome
+    # Priority: COMPLETED > SCHEDULED > NO_SHOW > RESCHEDULED
+    # Include all meeting types (don't filter by type — many have no type set)
+    EXCLUDE_TYPES = {"internal", "team meeting", "check-in", "onboarding"}
+    PRIORITY = {"COMPLETED": 4, "SCHEDULED": 3, "NO_SHOW": 2, "RESCHEDULED": 1, "NONE": 0}
     deal_mtg = {}
     for did, mids in mtg_map.items():
-        # Priority: COMPLETED > SCHEDULED > NO_SHOW > else
         best = "NONE"
         for mid in mids:
             o = outcomes.get(mid, {})
-            otype = o.get("type", "")
+            otype = o.get("type", "").lower()
             outcome = o.get("outcome", "NONE")
-            # Only count discovery/demo meetings
-            if otype and "discovery" not in otype and "demo" not in otype:
+            # Skip clearly internal meetings
+            if any(x in otype for x in EXCLUDE_TYPES):
                 continue
-            if outcome == "COMPLETED":
-                best = "COMPLETED"; break
-            elif outcome in ("SCHEDULED", "NO_SHOW", "RESCHEDULED") and best == "NONE":
+            if PRIORITY.get(outcome, 0) > PRIORITY.get(best, 0):
                 best = outcome
         deal_mtg[did] = best
     return deal_mtg

@@ -176,14 +176,18 @@ var MM=[
 ];
 function getMtg(){
   var f=document.getElementById("df").value,t=document.getElementById("dt").value;
-  if(!f||!t)return{booked:0,completed:0,noshow:0};
-  var tb=0,tc=0,tn=0,matched=false;
-  for(var i=0;i<MM.length;i++){
-    var m=MM[i];
-    if(m.e>=f&&m.s<=t){tb+=m.b;tc+=m.c;tn+=m.n;matched=true}
+  if(!f||!t)return{booked:0,completed:0,noshow:0,scheduled:0,canceled:0};
+  var booked=0,completed=0,noshow=0,scheduled=0,canceled=0;
+  for(var i=0;i<MEETINGS.length;i++){
+    var m=MEETINGS[i];
+    if(!m.date||m.date<f||m.date>t)continue;
+    booked++;
+    if(m.outcome==="COMPLETED")completed++;
+    else if(m.outcome==="NO_SHOW")noshow++;
+    else if(m.outcome==="SCHEDULED"||m.outcome==="NONE"||!m.outcome)scheduled++;
+    else if(m.outcome==="CANCELED")canceled++;
   }
-  if(!matched){return{booked:0,completed:0,noshow:0}}
-  return{booked:tb,completed:tc,noshow:tn};
+  return{booked:booked,completed:completed,noshow:noshow,scheduled:scheduled,canceled:canceled};
 }
 var SCL = {"won":"p-w","lost":"p-l","neg":"p-n","disc":"p-d","cont":"p-c","att":"p-a"};
 var MEETINGS=[];
