@@ -19,16 +19,6 @@ def js_monthly_array(data):
     return "[" + ",".join(entries) + "]"
 
 
-def js_meetings_array(data):
-    """Convert meetings list to compact JS array string."""
-    entries = []
-    for m in data:
-        title = json.dumps(m.get("title", ""))
-        entries.append(
-            f'{{"id":"{m["id"]}","title":{title},"date":"{m["date"]}","outcome":"{m["outcome"]}"}}'
-        )
-    return "[" + ",".join(entries) + "]"
-
 
 def main():
     print("Building dashboard...")
@@ -61,10 +51,10 @@ def main():
     if cl:
         html = re.sub(r'var CL=\[.*?\];', f'var CL={js_monthly_array(cl)};', html, flags=re.DOTALL)
 
-    # Meetings — inject as JS variable for modal use
-    meetings = load_json(os.path.join(ROOT, "data", "meetings.json"), [])
-    mtg_js = f"var MEETINGS={js_meetings_array(meetings)};"
-    html = html.replace("var MEETINGS=[];", mtg_js)
+    # Webinar signups (webinar_registration_date — includes existing contacts)
+    ws = load_json(os.path.join(ROOT, "data", "webinar_signups.json"), [])
+    if ws:
+        html = re.sub(r'var WSIGNUPS=\[.*?\];', f'var WSIGNUPS={js_monthly_array(ws)};', html, flags=re.DOTALL)
 
     # Ads summary
     ads = load_json(os.path.join(ROOT, "data", "ads_summary.json"), None)
@@ -73,6 +63,7 @@ def main():
 
     # Date stamp + subtitle counts
     today = datetime.now().strftime("%b %d, %Y")
+    ytd_date = datetime.now().strftime("%Y-%m-%d")
     total_leads = sum(l["t"] for l in leads)
     won = [d for d in deals if d.get("w")]
     lost = [d for d in deals if d.get("l")]
@@ -80,8 +71,10 @@ def main():
     total_sqls = sum(s["t"] for s in sqls)
     total_wl = sum(m["t"] for m in wl)
     total_cl = sum(m["t"] for m in cl)
+    total_ws = sum(m["t"] for m in ws)
 
     html = html.replace("__DATE__", today)
+    html = html.replace("__YTD_DATE__", ytd_date)
     html = html.replace("__TOTAL_LEADS__", f"{total_leads:,}")
     html = html.replace("__TOTAL_DEALS__", str(len(deals)))
     html = html.replace("__TOTAL_SQLS__", f"{total_sqls:,}")
@@ -95,8 +88,9 @@ def main():
     print(f"\n  Built: output/index.html ({len(html):,} bytes)")
     print(f"  Deals: {len(deals)} (Won:{len(won)} Lost:{len(lost)} Open:{len(opn)})")
     print(f"  Leads: {total_leads:,} | SQLs: {total_sqls:,}")
-    print(f"  Webinar leads: {total_wl:,} | Conference leads: {total_cl:,}")
-    print(f"  Meetings: {len(meetings)}")
+    print(f"  Webinar leads: {total_wl:,} | Conference leads: {total_cl:,} | Webinar signups: {total_ws:,}")
+    demos = sum(1 for d in deals if d.get("mb"))
+    print(f"  Demos booked (deals with meeting): {demos}")
     print(f"  Won MRR: ${sum(d.get('mrr', 0) for d in won):,.2f}")
 
 

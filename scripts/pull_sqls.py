@@ -13,13 +13,16 @@ BASE = "https://api.hubapi.com"
 HEADERS = {"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"}
 
 def count_sqls_in_range(start, end):
-    """Count contacts whose hs_v2_date_entered_opportunity falls in range."""
+    """Count contacts CREATED in period who have ever been converted to SQL.
+    This gives the SQL conversion rate for the cohort of leads in this period.
+    """
     body = {
         "filterGroups": [{"filters": [
-            {"propertyName": "hs_v2_date_entered_opportunity", "operator": "GTE", "value": start},
-            {"propertyName": "hs_v2_date_entered_opportunity", "operator": "LTE", "value": end}
+            {"propertyName": "createdate", "operator": "GTE", "value": start},
+            {"propertyName": "createdate", "operator": "LTE", "value": end},
+            {"propertyName": "hs_v2_date_entered_opportunity", "operator": "HAS_PROPERTY"},
         ]}],
-        "properties": ["hs_v2_date_entered_opportunity"],
+        "properties": ["createdate"],
         "limit": 1
     }
     r = requests.post(f"{BASE}/crm/v3/objects/contacts/search", headers=HEADERS, json=body)

@@ -42,11 +42,6 @@ jobs:
           HUBSPOT_TOKEN: ${{ secrets.HUBSPOT_TOKEN }}
         run: python scripts/pull_sqls.py
 
-      - name: Pull meetings
-        env:
-          HUBSPOT_TOKEN: ${{ secrets.HUBSPOT_TOKEN }}
-        run: python scripts/pull_meetings.py
-
       - name: Pull ad spend (optional — requires ads_read scope)
         env:
           HUBSPOT_TOKEN: ${{ secrets.HUBSPOT_TOKEN }}

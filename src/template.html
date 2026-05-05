@@ -112,6 +112,7 @@ a{color:var(--a);text-decoration:none}a:hover{text-decoration:underline}
   <button class="tab" onclick="sT('journey',this)">Prospect Journey</button>
 </div>
 <div id="tab-mktg"><div class="kg" id="mK"></div><div class="funnel" id="mF"></div>
+  <div id="adSpend"></div>
   <div style="display:flex;gap:6px;margin-bottom:8px">
 <button class="btn" id="amFT" onclick="setAM('ft')" style="font-size:11px;padding:3px 10px;border-radius:12px;cursor:pointer">First-Touch</button>
 <button class="btn" id="amLT" onclick="setAM('lt')" style="font-size:11px;padding:3px 10px;border-radius:12px;cursor:pointer">Last-Touch</button>
@@ -175,19 +176,20 @@ var MM=[
 {"s":"2026-04-01","e":"2026-04-30","b":4,"c":0,"n":1}
 ];
 function getMtg(){
+  // Demo Booked = hardcoded accurate monthly data from HubSpot.
+  // Demo Completed/No-show = derived from deal-level meeting outcomes.
   var f=document.getElementById("df").value,t=document.getElementById("dt").value;
   if(!f||!t)return{booked:0,completed:0,noshow:0,scheduled:0,canceled:0};
-  var booked=0,completed=0,noshow=0,scheduled=0,canceled=0;
-  for(var i=0;i<MEETINGS.length;i++){
-    var m=MEETINGS[i];
-    if(!m.date||m.date<f||m.date>t)continue;
-    booked++;
-    if(m.outcome==="COMPLETED")completed++;
-    else if(m.outcome==="NO_SHOW")noshow++;
-    else if(m.outcome==="SCHEDULED"||m.outcome==="NONE"||!m.outcome)scheduled++;
-    else if(m.outcome==="CANCELED")canceled++;
+  var booked=getDemoBooked();
+  var completed=0,noshow=0,scheduled=0;
+  for(var i=0;i<D.length;i++){
+    var d=D[i];
+    if(!d.mb||!d.mgd||d.mgd<f||d.mgd>t)continue;
+    if(d.ms2==="show")completed++;
+    else if(d.ms2==="noshow")noshow++;
+    else scheduled++;
   }
-  return{booked:booked,completed:completed,noshow:noshow,scheduled:scheduled,canceled:canceled};
+  return{booked:booked,completed:completed,noshow:noshow,scheduled:scheduled,canceled:0};
 }
 var SCL = {"won":"p-w","lost":"p-l","neg":"p-n","disc":"p-d","cont":"p-c","att":"p-a"};
 var MEETINGS=[];
@@ -249,8 +251,12 @@ var CL=[
 {s:"2026-01-01",e:"2026-01-31",t:13},{s:"2026-02-01",e:"2026-02-28",t:5},{s:"2026-03-01",e:"2026-03-31",t:0},
 {s:"2026-04-01",e:"2026-04-30",t:0}
 ];
+var WSIGNUPS=[];
 function getWebLeads(){var f=document.getElementById("df").value,t=document.getElementById("dt").value;var r=0;for(var i=0;i<WL.length;i++){if(WL[i].e>=f&&WL[i].s<=t)r+=WL[i].t}return r}
 function getConfLeads(){var f=document.getElementById("df").value,t=document.getElementById("dt").value;var r=0;for(var i=0;i<CL.length;i++){if(CL[i].e>=f&&CL[i].s<=t)r+=CL[i].t}return r}
+function getWebSignups(){var f=document.getElementById("df").value,t=document.getElementById("dt").value;var r=0;for(var i=0;i<WSIGNUPS.length;i++){if(WSIGNUPS[i].e>=f&&WSIGNUPS[i].s<=t)r+=WSIGNUPS[i].t}return r}
+var DB_MONTHLY=[{s:"2025-11-01",e:"2025-11-30",t:27},{s:"2025-12-01",e:"2025-12-31",t:18},{s:"2026-01-01",e:"2026-01-31",t:38},{s:"2026-02-01",e:"2026-02-28",t:45},{s:"2026-03-01",e:"2026-03-31",t:39},{s:"2026-04-01",e:"2026-04-30",t:44}];
+function getDemoBooked(){var f=document.getElementById("df").value,t=document.getElementById("dt").value;var r=0;for(var i=0;i<DB_MONTHLY.length;i++){if(DB_MONTHLY[i].e>=f&&DB_MONTHLY[i].s<=t)r+=DB_MONTHLY[i].t;}return r;}
 
 var SN2={"PAID_SEARCH":"Google Ads","PAID_SOCIAL":"Meta Ads","ORGANIC_SEARCH":"Organic","EMAIL_MARKETING":"Email","REFERRALS":"Referral","DIRECT_TRAFFIC":"Direct","SOCIAL_MEDIA":"LinkedIn Org","AI_REFERRALS":"ChatGPT","OFFLINE":"Offline/Import"};
 function tags(d){
@@ -286,7 +292,7 @@ function tags(d){
 }
 
 function setP(p){
-  var m={"all":["2023-01-01","2026-12-31"],"q1":["2026-01-01","2026-03-31"],"q4":["2025-10-01","2025-12-31"],"ytd":["2026-01-01","2026-03-31"]};
+  var m={"all":["2023-01-01","2026-12-31"],"q1":["2026-01-01","2026-03-31"],"q4":["2025-10-01","2025-12-31"],"ytd":["2026-01-01","__YTD_DATE__"]};
   document.getElementById("df").value=m[p][0];document.getElementById("dt").value=m[p][1];R();
 }
 function sT(t,el){
@@ -348,9 +354,12 @@ var _kd={won:[],lost:[],open:[],all:[]};
 
 function getMeetingsInRange(outcomeFilter){
   var f=document.getElementById("df").value,t=document.getElementById("dt").value;
-  return MEETINGS.filter(function(m){
-    if(!m.date||m.date<f||m.date>t)return false;
-    if(outcomeFilter&&outcomeFilter.length&&outcomeFilter.indexOf(m.outcome)<0)return false;
+  return D.filter(function(d){
+    if(!d.mb||!d.mgd||d.mgd<f||d.mgd>t)return false;
+    if(outcomeFilter&&outcomeFilter.length){
+      var o=d.ms2==="show"?"COMPLETED":d.ms2==="noshow"?"NO_SHOW":"SCHEDULED";
+      if(outcomeFilter.indexOf(o)<0)return false;
+    }
     return true;
   });
 }
@@ -373,14 +382,16 @@ function showModal(title,key){
 
 function showMeetingsModal(title, outcomeFilter){
   var items=getMeetingsInRange(outcomeFilter);
+  items.sort(function(a,b){return(b.mgd||"").localeCompare(a.mgd||"")});
   document.getElementById("modalTitle").textContent=title;
-  document.getElementById("modalCnt").textContent=items.length+" meetings";
-  var outcomeColor={"COMPLETED":"var(--g)","SCHEDULED":"var(--am)","NO_SHOW":"var(--r)","CANCELED":"var(--m)","RESCHEDULED":"var(--am)"};
-  var h="<table><thead><tr><th>DATE</th><th>MEETING TITLE</th><th>OUTCOME</th></tr></thead><tbody>";
+  document.getElementById("modalCnt").textContent=items.length+" deals";
+  var h="<table><thead><tr><th>DEMO DATE</th><th>PROSPECT</th><th>STAGE</th><th>OUTCOME</th></tr></thead><tbody>";
   for(var i=0;i<items.length;i++){
-    var m=items[i];
-    var col=outcomeColor[m.outcome]||"var(--m)";
-    h+="<tr><td style='color:var(--m)'>"+m.date+"</td><td>"+m.title+"</td><td style='color:"+col+";font-weight:700;font-size:11px'>"+m.outcome+"</td></tr>";
+    var d=items[i];
+    var nm=d.url?"<a href='"+d.url+"' target='_blank'>"+d.n+"</a>":d.n;
+    var outcomeLabel=d.ms2==="show"?"Completed":d.ms2==="noshow"?"No-show":"Scheduled";
+    var outcomeCol=d.ms2==="show"?"var(--g)":d.ms2==="noshow"?"var(--r)":"var(--am)";
+    h+="<tr><td style='color:var(--m)'>"+d.mgd+"</td><td>"+nm+"</td><td><span class='pill "+(SCL[d.sc]||"p-a")+"'>"+d.sn+"</span></td><td style='color:"+outcomeCol+";font-weight:700;font-size:11px'>"+outcomeLabel+"</td></tr>";
   }
   h+="</tbody></table>";
   document.getElementById("modalBody").innerHTML=h;
@@ -412,8 +423,8 @@ function kpis(id,d){
     kp("open","Pipeline Deals",'<div class="kl">Pipeline MRR</div><div class="kv" style="color:var(--a)">'+fmt(aMRR)+'</div>')+
     '<div class="ki"><div class="kl">Win Rate</div><div class="kv">'+wr.toFixed(1)+'%</div><div class="ks">'+won.length+'W / '+(won.length+lost.length)+' closed</div></div>'+
     '<div class="ki"><div class="kl">SQL Rate</div><div class="kv">'+pct(getSQLCount(),getLeadCount()||1)+'</div><div class="ks">'+getSQLCount()+' SQLs / '+getLeadCount()+' leads</div></div>'+
-    '<div class="ki" style="cursor:pointer" onclick="showMeetingsModal(\'Demo Booked\',[])">'+'<div class="kl">Demo Booked</div><div class="kv" style="color:var(--cy)">'+(m.booked+m.completed+m.noshow)+'</div><div class="ks">Discovery Meetings</div></div>'+
-    '<div class="ki" style="cursor:pointer" onclick="showMeetingsModal(\'Demo Completed\',[\'COMPLETED\'])">'+'<div class="kl">Demo Completed</div><div class="kv" style="color:var(--g)">'+m.completed+'</div><div class="ks">'+pct(m.completed,(m.booked+m.completed+m.noshow)||1)+' show rate</div></div>'+
+    '<div class="ki" style="cursor:pointer" onclick="showMeetingsModal(\'Demo Booked\',[])">'+'<div class="kl">Demo Booked</div><div class="kv" style="color:var(--cy)">'+m.booked+'</div><div class="ks">Discovery Meetings</div></div>'+
+    '<div class="ki" style="cursor:pointer" onclick="showMeetingsModal(\'Demo Completed\',[\'COMPLETED\'])">'+'<div class="kl">Demo Completed</div><div class="kv" style="color:var(--g)">'+m.completed+'</div><div class="ks">'+pct(m.completed,m.booked||1)+' show rate</div></div>'+
     kp("all","All Deals — Listings",'<div class="kl">Total Listings</div><div class="kv" style="color:var(--or)">'+aList.toLocaleString()+'</div><div class="ks">all deals</div>')+
     kp("open","Pipeline — Listings",'<div class="kl">Pipeline Listings</div><div class="kv" style="color:var(--a)">'+oList.toLocaleString()+'</div><div class="ks">open deals</div>')+
     kp("won","Won — Listings",'<div class="kl">Won Listings</div><div class="kv" style="color:var(--g)">'+wList.toLocaleString()+'</div><div class="ks">customers</div>');
@@ -429,8 +440,8 @@ function mkFunnel(id,d,leadType){
   funnel(id,[
     {l:"Leads In",n:lc,v:0,r:"100%"},
     {l:"SQLs",n:sqlc,v:0,r:pct(sqlc,lc)},
-    {l:"Demo Booked",n:m.booked+m.completed+m.noshow,v:0,r:pct(m.booked+m.completed+m.noshow,lc)},
-    {l:"Demo Completed",n:m.completed,v:0,r:pct(m.completed,m.booked+m.completed+m.noshow||1)},
+    {l:"Demo Booked",n:m.booked,v:0,r:pct(m.booked,lc)},
+    {l:"Demo Completed",n:m.completed,v:0,r:pct(m.completed,m.booked||1)},
     {l:"Opportunity",n:open.length,v:0,r:pct(open.length,lc)},
     {l:"Closed Won",n:won.length,v:wMRR,r:pct(won.length,d.length||1)}
   ]);
@@ -521,6 +532,33 @@ function calcCost(){
   document.getElementById("costTbl").innerHTML=html;
 }
 
+function renderAdSpend(){
+  var el=document.getElementById("adSpend");
+  if(!el)return;
+  var f=(document.getElementById("df").value||"").substring(0,7);
+  var t=(document.getElementById("dt").value||"").substring(0,7);
+  var NET_NAMES={"META":"Meta Ads","GOOGLE_ADS":"Google Ads","GOOGLE":"Google Ads","LINKEDIN":"LinkedIn Ads","FACEBOOK":"Meta Ads"};
+  var NET_COLORS={"META":"#1877F2","GOOGLE_ADS":"#EA4335","GOOGLE":"#EA4335","LINKEDIN":"#0A66C2","FACEBOOK":"#1877F2"};
+  var totals={};var grandTotal=0;
+  for(var net in ADS_SPEND){
+    var months=ADS_SPEND[net];var sum=0;
+    for(var ym in months){if(ym>=f&&ym<=t)sum+=months[ym];}
+    if(sum>0){totals[net]=sum;grandTotal+=sum;}
+  }
+  if(grandTotal===0){
+    el.innerHTML='<div style="background:var(--s);border:1px solid var(--bd);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--m)">Ad Spend: <strong style="color:var(--t)">No data yet</strong> — add <code style="background:var(--s2);padding:1px 5px;border-radius:3px">ads_read</code> scope to your HubSpot private app to pull Meta, Google & LinkedIn spend.</div>';
+    return;
+  }
+  var h='<div style="margin-bottom:6px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--m)">Ad Spend — selected period</div><div class="kg">';
+  h+='<div class="ki"><div class="kl">Total Spend</div><div class="kv" style="color:var(--am)">'+fmt(grandTotal)+'</div></div>';
+  for(var net in totals){
+    var name=NET_NAMES[net]||net;var col=NET_COLORS[net]||"var(--a)";
+    h+='<div class="ki"><div class="kl">'+name+'</div><div class="kv" style="color:'+col+'">'+fmt(totals[net])+'</div></div>';
+  }
+  h+='</div>';
+  el.innerHTML=h;
+}
+
 function R(){
   dc();
   var data=fil();
@@ -530,17 +568,17 @@ function R(){
     return String(va||"").localeCompare(String(vb||""))*sd;
   });
 
+  var md=data.filter(isMktg);
   if(curTab==="mktg"){
-    var md=data.filter(isMktg);
     kpis("mK",md);mkFunnel("mF",md,"mktg");donut("mFC",md,"ft");donut("mLC",md,"lt");
-    calcCost();
+    renderAdSpend();calcCost();
     document.getElementById("mCnt").textContent=md.length+" marketing-attributed deals";
     tblH("mTH");document.getElementById("mTB").innerHTML=md.map(row).join("");
   }
   else if(curTab==="sales"){
-    kpis("sK",data);mkFunnel("sF",data,"all");donut("sFC",data,"ft");donut("sLC",data,"lt");
-    document.getElementById("sCnt").textContent=data.length+" deals";
-    tblH("sTH");document.getElementById("sTB").innerHTML=data.map(row).join("");
+    kpis("sK",md);mkFunnel("sF",md,"mktg");donut("sFC",md,"ft");donut("sLC",md,"lt");
+    document.getElementById("sCnt").textContent=md.length+" deals";
+    tblH("sTH");document.getElementById("sTB").innerHTML=md.map(row).join("");
   }
   else if(curTab==="web"){
     var allWeb=data.filter(function(x){return x.ch_webinar===1||x.wn});
@@ -555,19 +593,22 @@ function R(){
     if(wv!=="all"){wd=allWeb.filter(function(x){return x.wn&&x.wn.indexOf(wv)>=0})}
     var wWon=wd.filter(function(x){return x.w}),wLost=wd.filter(function(x){return x.l}),wOpen=wd.filter(function(x){return !x.w&&!x.l});
     var wMRR=0,wPipe=0;for(var i=0;i<wWon.length;i++)wMRR+=(wWon[i].mrr||0);for(var i=0;i<wOpen.length;i++)wPipe+=(wOpen[i].mrr||0);
-    var wLc=getWebLeads();var wWr=(wWon.length+wLost.length)?((wWon.length/(wWon.length+wLost.length))*100):0;var m=getMtg();
+    var wLc=getWebLeads();var wSc=getWebSignups();var wWr=(wWon.length+wLost.length)?((wWon.length/(wWon.length+wLost.length))*100):0;var m=getMtg();
     document.getElementById("wK").innerHTML=
-      '<div class="ki"><div class="kl">Webinar Leads</div><div class="kv">'+wLc+'</div><div class="ks">contact_origins=Webinar</div></div>'+
+      '<div class="ki"><div class="kl">Webinar Signups</div><div class="kv" style="color:var(--cy)">'+wSc+'</div><div class="ks">All registrants (incl. existing contacts)</div></div>'+
+      '<div class="ki"><div class="kl">Webinar Leads</div><div class="kv">'+wLc+'</div><div class="ks">New contacts via webinar</div></div>'+
       '<div class="ki"><div class="kl">Open Deals</div><div class="kv">'+wOpen.length+'</div></div>'+
       '<div class="ki"><div class="kl">Won MRR</div><div class="kv" style="color:var(--g)">'+fmt(wMRR)+'</div><div class="ks">'+wWon.length+' customers</div></div>'+
       '<div class="ki"><div class="kl">Won ARR</div><div class="kv" style="color:var(--g)">'+fmt(wMRR*12)+'</div></div>'+
       '<div class="ki"><div class="kl">Pipeline MRR</div><div class="kv" style="color:var(--a)">'+fmt(wPipe)+'</div></div>'+
       '<div class="ki"><div class="kl">Win Rate</div><div class="kv">'+wWr.toFixed(1)+'%</div></div>';
+    var wBooked=wd.filter(function(d){return d.mb}).length;
+    var wCompleted=wd.filter(function(d){return d.ms2==="show"}).length;
     funnel("wF",[
       {l:"Webinar Leads",n:wLc,v:0,r:"100%"},
       {l:"SQLs (Deals)",n:wd.length,v:0,r:pct(wd.length,wLc)},
-      {l:"Demo Booked",n:m.booked+m.completed+m.noshow,v:0,r:pct(m.booked+m.completed+m.noshow,wLc)},
-      {l:"Demo Completed",n:m.completed,v:0,r:pct(m.completed,(m.booked+m.completed+m.noshow)||1)},
+      {l:"Demo Booked",n:wBooked,v:0,r:pct(wBooked,wd.length||1)},
+      {l:"Demo Completed",n:wCompleted,v:0,r:pct(wCompleted,wBooked||1)},
       {l:"Closed Won",n:wWon.length,v:wMRR,r:pct(wWon.length,wd.length||1)}
     ]);
     document.getElementById("wCnt").textContent=wd.length+" webinar-attributed deals";
@@ -594,11 +635,13 @@ function R(){
       '<div class="ki"><div class="kl">Won ARR</div><div class="kv" style="color:var(--g)">'+fmt(cMRR*12)+'</div></div>'+
       '<div class="ki"><div class="kl">Pipeline MRR</div><div class="kv" style="color:var(--a)">'+fmt(cPipe)+'</div></div>'+
       '<div class="ki"><div class="kl">Win Rate</div><div class="kv">'+cWr.toFixed(1)+'%</div></div>';
+    var cBooked=cd.filter(function(d){return d.mb}).length;
+    var cCompleted=cd.filter(function(d){return d.ms2==="show"}).length;
     funnel("cF",[
       {l:"Conference Leads",n:cLc,v:0,r:"100%"},
       {l:"SQLs (Deals)",n:cd.length,v:0,r:pct(cd.length,cLc)},
-      {l:"Demo Booked",n:m.booked+m.completed+m.noshow,v:0,r:pct(m.booked+m.completed+m.noshow,cLc)},
-      {l:"Demo Completed",n:m.completed,v:0,r:pct(m.completed,(m.booked+m.completed+m.noshow)||1)},
+      {l:"Demo Booked",n:cBooked,v:0,r:pct(cBooked,cd.length||1)},
+      {l:"Demo Completed",n:cCompleted,v:0,r:pct(cCompleted,cBooked||1)},
       {l:"Closed Won",n:cWon.length,v:cMRR,r:pct(cWon.length,cd.length||1)}
     ]);
     document.getElementById("cCnt").textContent=cd.length+" conference-attributed deals";

@@ -145,7 +145,7 @@ def get_contacts(contact_ids):
 
 
 def get_deal_meetings(deal_ids):
-    """Return {deal_id: {outcome: count}} for meetings associated with each deal."""
+    """Return ({deal_id: best_outcome}, [meeting records for meetings.json])."""
     mtg_map = {}
     # Fetch meeting associations in batches
     for i in range(0, len(deal_ids), 100):
@@ -166,16 +166,21 @@ def get_deal_meetings(deal_ids):
         time.sleep(0.2)
 
     if not mtg_map:
-        return {}
+        return {}, []
 
-    # Fetch meeting outcomes
+    # Fetch meeting details (title, outcome, date, type)
     all_mtg_ids = list(set(mid for mids in mtg_map.values() for mid in mids))
-    outcomes = {}
+    meeting_details = {}
     for i in range(0, len(all_mtg_ids), 100):
         batch = all_mtg_ids[i:i+100]
         body = {
             "inputs": [{"id": mid} for mid in batch],
-            "properties": ["hs_meeting_outcome", "hs_activity_type", "hs_meeting_start_time"],
+            "properties": [
+                "hs_meeting_title",
+                "hs_meeting_outcome",
+                "hs_activity_type",
+                "hs_meeting_start_time",
+            ],
         }
         r = requests.post(
             f"{BASE}/crm/v3/objects/meetings/batch/read",
@@ -186,30 +191,37 @@ def get_deal_meetings(deal_ids):
             continue
         for m in r.json().get("results", []):
             p = m.get("properties", {})
-            outcomes[str(m["id"])] = {
+            meeting_details[str(m["id"])] = {
+                "id":      str(m["id"]),
+                "title":   (p.get("hs_meeting_title") or "Discovery Meeting"),
+                "date":    (p.get("hs_meeting_start_time") or "")[:10],
                 "outcome": (p.get("hs_meeting_outcome") or "UNKNOWN").upper(),
                 "type":    (p.get("hs_activity_type") or "").lower(),
             }
         time.sleep(0.2)
 
-    # Map deal_id -> best meeting outcome
-    # Priority: COMPLETED > SCHEDULED > NO_SHOW > RESCHEDULED
-    # Include all meeting types (don't filter by type — many have no type set)
-    EXCLUDE_TYPES = {"internal", "team meeting", "check-in", "onboarding"}
+    # Only keep meetings with an explicitly tracked sales outcome.
+    # Calendar-synced internal events almost never have an outcome set.
+    VALID_OUTCOMES = {"COMPLETED", "SCHEDULED", "NO_SHOW", "RESCHEDULED"}
     PRIORITY = {"COMPLETED": 4, "SCHEDULED": 3, "NO_SHOW": 2, "RESCHEDULED": 1, "NONE": 0}
+
+    # Map deal_id -> best sales meeting {outcome, date}
     deal_mtg = {}
     for did, mids in mtg_map.items():
-        best = "NONE"
+        best_outcome = "NONE"
+        best_date = ""
         for mid in mids:
-            o = outcomes.get(mid, {})
-            otype = o.get("type", "").lower()
-            outcome = o.get("outcome", "NONE")
-            # Skip clearly internal meetings
-            if any(x in otype for x in EXCLUDE_TYPES):
+            d = meeting_details.get(mid, {})
+            outcome = d.get("outcome", "NONE")
+            if outcome not in VALID_OUTCOMES:
                 continue
-            if PRIORITY.get(outcome, 0) > PRIORITY.get(best, 0):
-                best = outcome
-        deal_mtg[did] = best
+            if PRIORITY.get(outcome, 0) > PRIORITY.get(best_outcome, 0):
+                best_outcome = outcome
+                best_date = d.get("date", "")
+        deal_mtg[did] = {"outcome": best_outcome, "date": best_date}
+
+    kept = sum(1 for v in deal_mtg.values() if v["outcome"] != "NONE")
+    print(f"    {kept}/{len(deal_ids)} deals have a tracked sales meeting")
     return deal_mtg
 
 
@@ -350,7 +362,7 @@ def build_tps(ft, ftd1, ftd2, lt, ltd1, contact_origins, contact_sources, wn, co
     return tps
 
 
-def enrich_deal(raw, contact_props, mtg_outcome):
+def enrich_deal(raw, contact_props, mtg_info):
     p   = raw["properties"]
     sid = p.get("dealstage", "")
     stg = STAGES.get(sid, {"name": "Unknown", "code": "unk", "order": 0})
@@ -359,6 +371,9 @@ def enrich_deal(raw, contact_props, mtg_outcome):
     mrr = float(p.get("hs_mrr")  or 0)
     arr = float(p.get("hs_arr")  or 0)
     amt = float(p.get("amount")  or 0)
+    # If hs_mrr not filled but deal value (amount) is, estimate MRR from amount/12
+    if not mrr and amt:
+        mrr = round(amt / 12, 2)
     cd  = (p.get("closedate")    or "")[:10]
     cr  = (p.get("createdate")   or "")[:10]
     lst = int(float(p.get("num_of_properties") or 0))
@@ -403,7 +418,9 @@ def enrich_deal(raw, contact_props, mtg_outcome):
     ch_ai      = 1 if ft == "AI_REFERRALS" or lt == "AI_REFERRALS" else 0
     ch_direct  = 1 if ft == "DIRECT_TRAFFIC" and not ch_webinar else 0
 
-    # Meeting outcome
+    # Meeting outcome (from best tracked sales meeting on this deal)
+    mtg_outcome = mtg_info.get("outcome", "NONE")
+    mgd = mtg_info.get("date", "")   # date of that meeting
     ms2 = ""
     if mtg_outcome == "COMPLETED":    ms2 = "show"
     elif mtg_outcome == "SCHEDULED":  ms2 = "sched"
@@ -421,7 +438,7 @@ def enrich_deal(raw, contact_props, mtg_outcome):
         "mrr": mrr, "arr": arr, "a": amt,
         "cd": cd, "cr": cr,
         "list": lst, "sr": sr, "neg": 1 if sid == "1075460493" else 0,
-        "mb": mb, "ms2": ms2,
+        "mb": mb, "ms2": ms2, "mgd": mgd,
         # Attribution
         "ft": ft, "ftd1": ftd1, "ftd2": ftd2,
         "lt": lt, "ltd1": ltd1, "ltd2": ltd2,
@@ -454,7 +471,7 @@ def main():
 
     print(f"\nFetching meeting associations...")
     deal_mtg = get_deal_meetings(deal_ids)
-    print(f"  Found meetings for {len(deal_mtg)} deals")
+    print(f"  Meeting data fetched for {len(deal_mtg)} deals")
 
     print("\nEnriching deals...")
     deals = []
@@ -471,8 +488,8 @@ def main():
         if not best_c and cids:
             best_c = contacts.get(cids[0], {})
 
-        mtg_outcome = deal_mtg.get(did, "NONE")
-        deals.append(enrich_deal(raw, best_c, mtg_outcome))
+        mtg_info    = deal_mtg.get(did, {"outcome": "NONE", "date": ""})
+        deals.append(enrich_deal(raw, best_c, mtg_info))
 
     # Stats
     won  = [d for d in deals if d["w"]]
@@ -487,8 +504,10 @@ def main():
           f"Webinar:{sum(d['ch_webinar'] for d in deals)}  Conf:{sum(d['ch_conf'] for d in deals)}  "
           f"SDR:{sum(d['ch_sdr'] for d in deals)}")
 
-    outpath = os.path.join(ROOT, "data", "deals.json")
-    os.makedirs(os.path.dirname(outpath), exist_ok=True)
+    outdir = os.path.join(ROOT, "data")
+    os.makedirs(outdir, exist_ok=True)
+
+    outpath = os.path.join(outdir, "deals.json")
     with open(outpath, "w") as f:
         json.dump(deals, f)
     print(f"\n  Saved to {outpath}")

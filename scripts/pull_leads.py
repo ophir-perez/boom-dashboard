@@ -43,6 +43,21 @@ def count_contacts(start, end, extra_filters=None):
     return r.json().get("total", 0)
 
 
+def count_webinar_signups(start, end):
+    """Count contacts with webinar_registration_date in range (includes existing contacts)."""
+    body = {
+        "filterGroups": [{"filters": [
+            {"propertyName": "webinar_registration_date", "operator": "GTE", "value": start},
+            {"propertyName": "webinar_registration_date", "operator": "LTE", "value": end},
+        ]}],
+        "properties": ["webinar_registration_date"],
+        "limit": 1
+    }
+    r = requests.post(f"{BASE}/crm/v3/objects/contacts/search", headers=HEADERS, json=body)
+    r.raise_for_status()
+    return r.json().get("total", 0)
+
+
 def pull_series(label, extra_filters=None):
     results = []
     total = 0
@@ -98,6 +113,21 @@ def main():
     with open(os.path.join(outdir, "conf_leads.json"), "w") as f:
         json.dump(cl, f)
     print(f"  Conference total: {cl_total:,}")
+
+    # --- Webinar signups (webinar_registration_date — includes existing contacts) ---
+    print("\nPulling webinar signup counts (webinar_registration_date)...")
+    ws = []
+    ws_total = 0
+    for start, end, lbl in MONTHS:
+        count = count_webinar_signups(start, end)
+        time.sleep(0.3)
+        ws.append({"s": start, "e": end, "t": count})
+        if count > 0:
+            ws_total += count
+            print(f"    {lbl}: {count:,}")
+    with open(os.path.join(outdir, "webinar_signups.json"), "w") as f:
+        json.dump(ws, f)
+    print(f"  Webinar signups total: {ws_total:,}")
 
 
 if __name__ == "__main__":
